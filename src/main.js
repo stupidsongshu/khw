@@ -18,35 +18,6 @@ Vue.config.productionTip = false
 Vue.use(MintUI)
 Vue.prototype.$http = axios
 
-/* eslint-disable no-new */
-new Vue({
-  el: '#app',
-  router,
-  store,
-  template: '<App/>',
-  components: {App},
-  created() {
-    axios.defaults.baseURL = 'http://xfjr.ledaikuan.cn:9191'
-    axios.interceptors.request.use((config) => {
-      // Indicator.open({
-      //   text: '加载中...',
-      //   spinnerType: 'fading-circle'
-      // })
-      if (config.method.toLowerCase() === 'post') {
-        // config.data = qs.stringify(config.data)
-      }
-      return config
-    }, function(error) {
-      return Promise.reject(error)
-    })
-    axios.interceptors.response.use(function(response) {
-      // Indicator.close()
-      return response
-    }, function(error) {
-      return Promise.reject(error)
-    })
-  }
-})
 Vue.prototype.goHome = function() {
   this.$router.push('/')
 }
@@ -271,12 +242,13 @@ window.addEventListener('resize', function() {
 // 汇总信息
 Vue.prototype.summerInfo = function() {
   /* eslint-disable no-unreachable */
+  console.log(this.$http)
   let that = this
   this.$http.post('/khw/c/l?mobileNo=13786868686').then(res => {
     if (res.data.returnCode === '000000') {
       let data = res.data.response
       // console.log(data)
-
+      alert(0)
       let ua = 'KHW_H5_SIGN'
       let call = 'Loan.loanAcctInfo'
       let timestamp = new Date().getTime()
@@ -288,14 +260,14 @@ Vue.prototype.summerInfo = function() {
         mobileNo: data.mobileNo,
         token: data.token
       }
-      that.$store.commit('commonParamsSave', {
+      store.commit('commonParamsSave', {
         ua: ua,
         // call: call,
         args: args,
         sign: sign,
         timestamp: timestamp
       })
-
+      alert(1)
       // 账户汇总信息查询
       let commonParams = that.$store.state.common.commonParams
       let st = JSON.stringify({
@@ -310,7 +282,7 @@ Vue.prototype.summerInfo = function() {
         sign: commonParams.sign,
         timestamp: commonParams.timestamp
       })
-
+      alert(2)
       that.$http.post('/khw/c/h', st).then(res => {
         if (res.data.returnCode === '000000') {
           let data = res.data.response
@@ -332,6 +304,7 @@ Vue.prototype.summerInfo = function() {
               if (data.tempFrozenAmt === 0) {
                 // 账户还款中冻结状态
                 if (data.payFrozenStus === '0') {
+                  alert(3)
                   that.$router.push('/')
                   that.$store.commit('baseTotCreLineSave', data.baseTotCreLine)
                 }
@@ -342,6 +315,39 @@ Vue.prototype.summerInfo = function() {
       }).catch(error => {
         console.log(error)
       })
+      alert(4)
     }
   })
 }
+
+/* eslint-disable no-new */
+new Vue({
+  el: '#app',
+  router,
+  store,
+  template: '<App/>',
+  components: {App},
+  created() {
+    axios.defaults.baseURL = 'http://xfjr.ledaikuan.cn:9191'
+    axios.interceptors.request.use((config) => {
+      // Indicator.open({
+      //   text: '加载中...',
+      //   spinnerType: 'fading-circle'
+      // })
+      if (config.method.toLowerCase() === 'post') {
+        // config.data = qs.stringify(config.data)
+      }
+      return config
+    }, function(error) {
+      return Promise.reject(error)
+    })
+    axios.interceptors.response.use(function(response) {
+      // Indicator.close()
+      return response
+    }, function(error) {
+      return Promise.reject(error)
+    })
+
+    this.summerInfo()
+  }
+})
