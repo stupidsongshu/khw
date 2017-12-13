@@ -1,0 +1,170 @@
+/* init style */
+* {
+  box-sizing: border-box;
+  -webkit-touch-callout: none; /* 系统默认菜单被禁用 */
+  -khtml-user-select: none;    /* 早期浏览器 */
+  -webkit-user-select: none;   /* webkit */
+  -moz-user-select: none;      /* firefox */
+  -ms-user-select: none;       /* IE10 */
+  user-select: none;
+}
+input {
+  /* fix 禁用长按复制导致 ios input 不能输入 */
+  -webkit-user-select: auto;
+  line-height: normal;
+}
+
+*::after, *::before {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #f1f1f1 !important;
+}
+
+html, body {
+  height: 100%;
+  /**
+   * touch当手指从触摸屏上移开，会保持一段时间的滚动
+   * auto当手指从触摸屏上移开，滚动会立即停止
+   */
+  -webkit-overflow-scrolling: touch;
+  /* 设置点击链接的时候出现的高亮颜色。显示给用户的高光是他们成功点击的标识，以及暗示了他们点击的元素 */
+  -webkit-tap-highlight-color: transparent;
+}
+/* 隐藏滚轮 */
+::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+  color: transparent;
+}
+
+a, a:hover {
+  text-decoration: none;
+}
+
+h1, h2, h3, h4, h5, h6, ul, ol, li, p, input {
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: normal;
+}
+
+ul, ol, li {
+  list-style: none;
+}
+
+img {
+  border: none;
+  outline: none;
+}
+
+input::-webkit-input-placeholder { /* WebKit */
+  color: #999;
+}
+input:-moz-placeholder {           /* Firefox 4 to 18 */
+  color: #999;
+}
+input::-moz-placeholder {          /* Firefox 19+ */
+  color: #999;
+}
+input:-ms-input-placeholder {      /* IE 10+ */
+  color: #999;
+}
+
+/* tool */
+.pull-left {
+  float: left !important;
+}
+
+.pull-right {
+  float: right !important;
+}
+
+.clearfix {
+  display: table;
+}
+
+.clearfix:after {
+  content: '';
+  display: block;
+  height: 0;
+  line-height: 0;
+  clear: both;
+  visibility: hidden;
+}
+
+.border-none {
+  border: none !important;
+}
+
+.color333 {
+  color: #333;
+}
+.color666 {
+  color: #666;
+}
+.color999 {
+  color: #999;
+}
+.main-color {
+  color: #daab5b;
+}
+.main-bgColor {
+  color: #daab5b;
+}
+
+/* common page */
+.header {
+  width: 100%;
+  /* 45px + 20px */
+  height: 65px;
+  padding: 20px 15px 0 15px;
+  color: #fff;
+  font-size: 18px;
+  background-color: #4e433d;
+  z-index: 999;
+}
+.header .icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  border-radius: 100%;
+  background-size: 24px 24px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.no-header {
+  /*margin-top: -45px + (-20px);*/
+  margin-top: -65px;
+}
+.no-header .title {
+  /*display: flex;
+  justify-content: space-between;*/
+  height: 65px;
+  padding: 20px 15px 0 15px;
+  font-size: 18px;
+  background-color: transparent;
+}
+.has-footer {
+  padding-bottom: 54px;
+}
+
+.loan-btn {
+  width: 100%;
+  height: 48px;
+  padding: 0 15px;
+  font-size: 18px;
+}
+.loan-btn .btn {
+  display: inline-block;
+  width: 100%;
+  padding: 12px 0;
+  text-align: center;
+  color: #fff;
+  border-radius: 6px;
+  background-color: #4e433d;
+}
