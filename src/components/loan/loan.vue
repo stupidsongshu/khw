@@ -24,7 +24,7 @@
       <div class="item">
         <div>
           <span class="name">贷款期数</span>
-          <span class="value">3期</span>
+          <span class="value">{{loanDuration}}期</span>
         </div>
         <div>
           <span class="name">日利率</span>
@@ -37,6 +37,20 @@
           <span class="value">建设银行（8871）</span>
         </div>
       </div>
+
+      <div class="form">
+        <div class="item">
+          <div class="name">验证码</div>
+          <div class="code-input">
+            <input type="number" placeholder="请输入短信验证码" v-model="vcode" oninput=" if(value.length>6){value = value.slice(0,6)}">
+          </div>
+          <div class="code-get">
+            <button class="code-btn" v-if="!hasGetCode" @click="getCode">发送验证码</button>
+            <button class="code-btn" v-if="hasGetCode">{{time}}s后重新获取</button>
+          </div>
+        </div>
+      </div>
+
       <div class="item">
         <div class="agreement-wrapper">
           <input type="checkbox" id="agreementInput" checked>
@@ -50,7 +64,7 @@
       <mt-button class="btn" @click="loanBtn">立即借款</mt-button>
     </div>
 
-    <loan-plan :overflowScroll="false"></loan-plan>
+    <loan-plan :overflowScroll="false" :loanPlanList="loanPlanList"></loan-plan>
 
     <mt-popup
       v-model="popupVisible"
@@ -62,7 +76,7 @@
         <div>请选择用途</div>
         <div @click="ensure">确定</div>
       </div>
-      <mt-picker :slots="yearSlot" @change="onChange" :visible-item-count="3"></mt-picker>
+      <mt-picker :slots="yearSlot" @change="onChange" :visible-item-count="3" value-key="val"></mt-picker>
     </mt-popup>
 
   </div>
@@ -78,23 +92,99 @@
         purpose: '',
         yearSlot: [{
           flex: 1,
-          values: ['', '家装', '婚庆', '旅游', '教育', '汽车周边', '电子数码产品', '医疗', '家用电器', '家具家居', '其他'],
+          values: [
+            {
+              id: '1',
+              val: '装修'
+            },
+            {
+              id: '2',
+              val: '婚庆'
+            },
+            {
+              id: '3',
+              val: '旅游'
+            },
+            {
+              id: '4',
+              val: '教育'
+            },
+            {
+              id: '5',
+              val: '租房'
+            },
+            {
+              id: '6',
+              val: '汽车周边'
+            },
+            {
+              id: '7',
+              val: '电子数码产品'
+            },
+            {
+              id: '8',
+              val: '医疗'
+            },
+            {
+              id: 'A',
+              val: '家用电器'
+            },
+            {
+              id: 'B',
+              val: '家具家居'
+            }
+          ],
           className: 'slot1'
-        }]
+        }],
+        vcode: '',
+        loanUseId: '',
+        hasGetCode: false,
+        time: 60,
+        loanPlanList: []
       }
     },
     computed: {
       loanLimit() {
-        // getter
-        // get: function() {
-        //   return this.$store.state.loan.loan_limit
-        // },
-        // setter
-        // set: function(newValue) {
-        //   this.$store.commit('loan_limit_save', newValue)
-        // }
-        return this.$store.state.loan.loan_limit
+        return this.$store.state.loan.loan_limit / 100
+      },
+      loanDuration() {
+        return this.$store.state.loan.loan_duration
       }
+    },
+    created() {
+      let that = this
+      let commonParams = this.$store.state.common.commonParams
+      console.log(commonParams)
+      let ua = commonParams.ua
+      let call = 'Loan.repayPlan'
+      let timestamp = new Date().getTime()
+      let sign = this.sign(ua, call, timestamp)
+      let paramString = JSON.stringify({
+        ua: ua,
+        call: call,
+        args: {
+          customerId: commonParams.args.customerId,
+          mobileNo: commonParams.args.mobileNo,
+          token: commonParams.args.token,
+          acctNo: commonParams.args.loanAcctNo,
+          queryBegNum: 1,
+          queryCnt: this.$store.state.loan.loan_duration,
+          dealFlg: 'A',
+          paymentAmount: this.$store.state.loan.loan_limit,
+          installPeriod: this.$store.state.loan.loan_duration,
+          paygateOrderId: ''
+        },
+        sign: sign,
+        timestamp: timestamp
+      })
+      this.$http.post('/khw/c/h', paramString).then(res => {
+        let data = res.data
+        console.log(data)
+        if (data.returnCode === '000000') {
+          let dataS = data.response
+          that.loanPlanList = dataS.list.splice(0, that.loanDuration)
+        }
+      })
     },
     methods: {
       back() {
@@ -108,10 +198,95 @@
       },
       // change 事件有两个参数，分别为当前 picker 的 vue 实例和各 slot 被选中的值组成的数组
       onChange(picker, values) {
-        this.purpose = values[0]
+        let info = values[0]
+        if (info !== undefined) {
+          console.log(info.id)
+          this.loanUseId = info.id
+        }
       },
+      getCode() {
+        let that = this
+        this.loading()
+
+        let commonParams = this.$store.state.common.commonParams
+        let ua = commonParams.ua
+        let call = 'Boccfc.dyanmicPwd'
+        let timestamp = new Date().getTime()
+        let sign = this.sign(ua, call, timestamp)
+        let paramString = JSON.stringify({
+          ua: ua,
+          call: call,
+          args: {
+            customerId: commonParams.args.customerId,
+            mobileNo: commonParams.args.mobileNo,
+            token: commonParams.args.token,
+            acctNo: commonParams.args.loanAcctNo
+          },
+          sign: sign,
+          timestamp: timestamp
+        })
+        this.$http.post('/khw/c/h', paramString).then(res => {
+          that.closeLoading()
+          console.log(res.data)
+          that.toast(res.data.returnMsg)
+          if (res.data.response === '000000') {
+            that.hasGetCode = true
+            let timer = setInterval(() => {
+              that.time --
+              if (that.time === 0) {
+                that.hasGetCode = false
+                that.time = 60
+                clearInterval(timer)
+              }
+            }, 1000)
+          }
+        }).catch(err => {
+          that.closeLoading()
+          console.log(err)
+          that.toast(err.data.returnMsg)
+        })
+      },
+      // 借款
       loanBtn() {
-        this.$router.push('loanCode')
+        let that = this
+        let commonParams = this.$store.state.common.commonParams
+        let ua = commonParams.ua
+        let call = 'Loan.cashExtract'
+        let timestamp = new Date().getTime()
+        let sign = this.sign(ua, call, timestamp)
+        let paramString = JSON.stringify({
+          ua: ua,
+          call: call,
+          args: {
+            customerId: commonParams.args.customerId,
+            mobileNo: commonParams.args.mobileNo,
+            token: commonParams.args.token,
+            loanAcctNo: commonParams.args.loanAcctNo,
+            amount: this.$store.state.loan.loan_limit,
+            instalPeriod: this.$store.state.loan.loan_duration,
+            comUseType: this.loanUseId,
+            dynamicPwd: this.vcode
+          },
+          sign: sign,
+          timestamp: timestamp
+        })
+        this.$http.post('/khw/c/h', paramString).then(res => {
+          that.closeLoading()
+          that.toast(res.data.returnMsg)
+          let data = res.data
+          console.log(data)
+          if (data.returnCode === '000000') {
+            let loanAcctInfo = data.response.loanAcctInfo
+            // let cashExtract = data.response.cashExtract
+            // 更新缓存
+            that.$store.commit('summaryInfoSave', loanAcctInfo)
+
+            // if (loanAcctInfo.tempFrozenAmt > 0) {
+            //   // 处理中
+            //   that.$router.push('/loanDeal')
+            // }
+          }
+        })
       }
     },
     components: {

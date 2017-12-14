@@ -27,10 +27,14 @@ const state = {
    */
   commonParams: {},
   /**
-   * 贷前贷后状态
-   * loanRepay: 0贷前 贷后
+   * 用户状态
+   * userStatus: 0 1借款 2还款
    */
-  loanRepay: 0
+  userStatus: 0,
+  /**
+   * 用户汇总信息
+   */
+  summaryInfo: {}
 }
 
 const getters = {}
@@ -51,12 +55,19 @@ const mutations = {
   commonParamsSave(state, payload) {
     state.commonParams = payload
   },
-  loanRepaySave(state, payload) {
-    state.loanRepay = payload
+  userStatusSave(state, payload) {
+    state.userStatus = payload
+  },
+  summaryInfoSave(state, payload) {
+    state.summaryInfo = payload
   }
 }
 
-const actions = {}
+const actions = {
+  summaryInfoAction(context, payload) {
+    context.commit('summaryInfoSave', payload)
+  }
+}
 
 export default {
   state,

@@ -65,6 +65,7 @@
     .self-tab-item
       display: flex
       flex-direction: column
+      color: #d2d1d1
       .isSelected
         color: #daab5b !important
       img

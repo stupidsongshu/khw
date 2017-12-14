@@ -41,20 +41,34 @@
     </div>
 
     <div class="loan-btn">
-      <mt-button class="btn" @click="loan">立即借款</mt-button>
+      <router-link to="/loan" class="btn">立即借款</router-link>
     </div>
-    <a href="http://www.baidu.com">
-      <span class="icon icon-us"></span>
-      <span>百度</span>
-      <i class="fa fa-angle-right" aria-hidden="true"></i>
-    </a>
+
     <div class="footer-txt">"卡还王"由麦广互娱与中银消费金融联合打造</div>
+
+    <mt-tabbar fixed>
+      <mt-tab-item id="loan">
+        <router-link to="/loanIndex">
+          <div class="self-tab-item">
+            <img slot="icon" src="../../assets/img/bottom_icon_01_click.png">
+            <span class="isSelected">借款</span>
+          </div>
+        </router-link>
+      </mt-tab-item>
+      <mt-tab-item id="my">
+        <router-link to="/my">
+          <div class="self-tab-item">
+            <img slot="icon" src="../../assets/img/bottom_icon_03_nor.png">
+            <span>我的</span>
+          </div>
+        </router-link>
+      </mt-tab-item>
+    </mt-tabbar>
   </div>
 </template>
 
 <script>
-  import noticeSwiper from './common/noticeSwiper'
-  // import axios from 'axios'
+  import noticeSwiper from './../common/noticeSwiper'
 
   export default {
     name: 'home',
@@ -69,9 +83,6 @@
     methods: {
       selectLoanDuration(time) {
         this.$store.commit('loan_duration_save', time)
-      },
-      loan() {
-        this.applystatus()
       }
     },
     computed: {
@@ -91,6 +102,9 @@
       },
       loanDuration() {
         return this.$store.state.loan.loan_duration
+      },
+      activeTabIndex() {
+        return this.$store.state.common.activeTabIndex
       }
     }
   }
@@ -109,7 +123,7 @@
   .mt-range-thumb
     width: 33px !important
     height: 33px !important
-    background-image: url("../assets/img/slider_money.png")
+    background-image: url("../../assets/img/slider_money.png")
     background-size: 33px 33px
 </style>
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -119,14 +133,14 @@
     width: 100%
     height: 238px
     font-size: 20px
-    background-image: url("../assets/img/bg-header.png")
+    background-image: url("../../assets/img/bg-header.png")
     background-repeat: no-repeat
     background-size: 100% 238px
     .icon-news
       display: inline-block
       width: 22px
       height: 45px
-      background-image: url("../assets/img/icon_news.png")
+      background-image: url("../../assets/img/icon_news.png")
       background-repeat: no-repeat
       background-position: center
       background-size: 22px 23px
@@ -145,7 +159,7 @@
         text-align: right
         color: #fff
         border-radius: 10px
-        background: url("../assets/img/card.png") no-repeat
+        background: url("../../assets/img/card.png") no-repeat
         background-size: 100% 200px
         /*box-shadow: 2px 0 12px #e5e3e2,-2px 0 12px #e5e3e2*/
         .loan-amount
@@ -156,7 +170,7 @@
               display: inline-block
               width: 19px
               height: 25px
-              background-image: url('../assets/img/icon_money.png')
+              background-image: url('../../assets/img/icon_money.png')
               background-size: 19px 25px
             span
               font-size: 45px

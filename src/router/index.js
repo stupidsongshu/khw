@@ -13,6 +13,7 @@ import NewsActivity from '@/components/newsCenter/activity'
 import NewsDeal from '@/components/newsCenter/deal'
 import NewsNotification from '@/components/newsCenter/notification'
 // 借款
+import LoanIndex from '@/components/loan/index'
 import Loan from '@/components/loan/loan'
 import LoanCode from '@/components/loan/loanCode'
 import LoanDeal from '@/components/loan/loanDeal'
@@ -66,6 +67,9 @@ const routes = [
     component: Home,
     meta: {
       keepAlive: true
+    },
+    beforeEnter: (to, from, next) => {
+      next()
     }
   },
   {
@@ -108,6 +112,12 @@ const routes = [
       }
     ]
   },
+  // 借款
+  {
+    path: '/loanIndex',
+    name: 'loanIndex',
+    component: LoanIndex
+  },
   {
     path: '/loan',
     name: 'loan',
@@ -123,6 +133,7 @@ const routes = [
     name: 'loanDeal',
     component: LoanDeal
   },
+  // 还款
   {
     path: '/repay',
     name: 'repay',

@@ -6,27 +6,25 @@
       <div class="banner">
         <div class="title">未还本金</div>
         <div class="amount">
-          <span class="icon-money"></span> 2000.<span class="decimals">00</span>
+          <span class="icon-money"></span> {{payOffAmtInt}}.<span class="decimals">{{payOffAmtFlo}}</span>
         </div>
-        <div class="time">申请时间：2017/07/28</div>
+        <div class="time" v-if="transTime">申请时间：{{transTime | date}}</div>
       </div>
 
-      <div class="card" @click="onTimeRepay">
+      <div class="card" v-if="!overdue" @click="onTimeRepay">
         <div class="card-l">
           <div class="card-l-t">按期还款</div>
           <div class="card-l-b">还款日将自动还款</div>
         </div>
-        <div class="card-m">
+        <!--<div class="card-m">
           <div class="card-m-t">691.14元</div>
           <div class="card-m-b">2017年08月27日</div>
-          <!--<div class="card-m-b" v-if="!overdue">2017年08月27日</div>
-          <div class="overdue" v-if="overdue">已逾期</div>-->
-        </div>
+        </div>-->
         <div class="card-r">
           <i class="fa fa-angle-right"></i>
         </div>
       </div>
-      <div class="card" @click="overdueTimeRepay">
+      <div class="card" v-if="overdue" @click="overdueTimeRepay">
         <div class="card-l">
           <div class="card-l-t">按期还款</div>
           <div class="card-l-b">还款日将自动还款</div>
@@ -65,26 +63,74 @@
   export default {
     data() {
       return {
-//        是否有贷款
+        // 是否有贷款
         hasRepay: true,
-//        还款是否逾期
-        overdue: true
+        // 还款是否逾期
+        overdue: false,
+        payOffAmtInt: 0,
+        payOffAmtFlo: 0,
+        transTime: '',
+        currPayPeriod: 0
       }
+    },
+    created() {
+      let summaryInfo = this.$store.state.common.summaryInfo
+      if (summaryInfo) {
+        if (summaryInfo.overdueStatus === 1) {
+          this.overdue = true
+        } else if (summaryInfo.overdueStatus === 2) {
+          this.overdue = false
+        }
+      }
+
+      // let that = this
+      let commonParams = this.$store.state.common.commonParams
+      let ua = commonParams.ua
+      let call = 'Loan.cashExtractDetail'
+      let timestamp = new Date().getTime()
+      let sign = this.sign(ua, call, timestamp)
+      let paramString = JSON.stringify({
+        ua: ua,
+        call: call,
+        args: {
+          customerId: commonParams.args.customerId,
+          mobileNo: commonParams.args.mobileNo,
+          token: commonParams.args.token,
+          loanAcctNo: commonParams.args.loanAcctNo
+        },
+        sign: sign,
+        timestamp: timestamp
+      })
+
+      this.$http.post('/khw/c/h', paramString).then(res => {
+        let data = res.data
+        if (data.returnCode === '000000') {
+          let payOffAmtStr = data.response.payOffAmt.toString()
+          this.payOffAmtInt = payOffAmtStr.substring(0, payOffAmtStr.length - 2)
+          this.payOffAmtFlo = payOffAmtStr.substring(payOffAmtStr.length - 2)
+          this.transTime = data.response.transTime
+          this.currPayPeriod = data.response.currPayPeriod
+        }
+      })
     },
     methods: {
       onTimeRepay() {
-        /* if (!this.overdue) {
-          this.$router.push('/onTimeRepay')
-        } else {
-          this.$router.push('/overdueRepay')
-        } */
         this.$router.push('/repay/onTimeRepay')
+        // this.$router.push({path: '/repay/onTimeRepay/{{currPayPeriod}}'})
+        // this.$router.push({name: 'onTimeRepay', params: {currPayPeriod: 123}})
       },
       overdueTimeRepay() {
         this.$router.push('/repay/overdueRepay')
       },
       inAdvanceRepay() {
         this.$router.push('/repay/inAdvanceRepay')
+      }
+    },
+    filters: {
+      date: function(val) {
+        let tmp = val.split(' ')[0]
+        console.log(tmp.split('-'))
+        return tmp.split('-').join('/')
       }
     }
   }

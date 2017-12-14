@@ -8,59 +8,14 @@
       <div class="plan-detail">详情</div>
       <div class="plan-amount">还款金额</div>
     </div>
-    <div class="plan-item">
-      <div class="plan-periods">1期</div>
+    <div class="plan-item" v-for="loanPlanItem in loanPlanList">
+      <div class="plan-periods">{{loanPlanItem.paymentPeriod}}期</div>
       <div class="plan-detail">
-        <div>时间：2017/10/20</div>
-        <div>本金：3000</div>
-        <div>利息：0.06</div>
+        <div>时间：{{loanPlanItem.prePayDay | date}}</div>
+        <div>本金：{{loanPlanItem.prePrin / 100}}</div>
+        <div>利息：{{loanPlanItem.preInt}}</div>
       </div>
-      <div class="plan-amount">691.14</div>
-    </div>
-    <div class="plan-item">
-      <div class="plan-periods">2期</div>
-      <div class="plan-detail">
-        <div>时间：2017/10/20</div>
-        <div>本金：3000</div>
-        <div>利息：0.06</div>
-      </div>
-      <div class="plan-amount">691.14</div>
-    </div>
-    <div class="plan-item">
-      <div class="plan-periods">3期</div>
-      <div class="plan-detail">
-        <div>时间：2017/10/20</div>
-        <div>本金：3000</div>
-        <div>利息：0.06</div>
-      </div>
-      <div class="plan-amount">691.14</div>
-    </div>
-    <div class="plan-item">
-      <div class="plan-periods">4期</div>
-      <div class="plan-detail">
-        <div>时间：2017/10/20</div>
-        <div>本金：3000</div>
-        <div>利息：0.06</div>
-      </div>
-      <div class="plan-amount">691.14</div>
-    </div>
-    <div class="plan-item">
-      <div class="plan-periods">5期</div>
-      <div class="plan-detail">
-        <div>时间：2017/10/20</div>
-        <div>本金：3000</div>
-        <div>利息：0.06</div>
-      </div>
-      <div class="plan-amount">691.14</div>
-    </div>
-    <div class="plan-item">
-      <div class="plan-periods">6期</div>
-      <div class="plan-detail">
-        <div>时间：2017/10/20</div>
-        <div>本金：3000</div>
-        <div>利息：0.06</div>
-      </div>
-      <div class="plan-amount">691.14</div>
+      <div class="plan-amount">{{loanPlanItem.preAmt / 100}}</div>
     </div>
   </div>
 </template>
@@ -70,6 +25,18 @@
     props: {
       overflowScroll: {
         type: Boolean
+      },
+      loanPlanList: {
+        type: Array
+      }
+    },
+    filters: {
+      date: function(val) {
+        let tmp = val.substr(0, 8)
+        let year = tmp.substr(0, 4)
+        let month = tmp.substr(4, 2)
+        let day = tmp.substr(6, 2)
+        return year + '/' + month + '/' + day
       }
     }
   }

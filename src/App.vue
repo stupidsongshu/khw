@@ -18,7 +18,7 @@
 
 <script>
   // import { MessageBox } from 'mint-ui'
-  import { Toast } from 'mint-ui'
+  // import { Toast } from 'mint-ui'
   import tabBar from './components/common/tabbar.vue'
 
   export default {
@@ -58,31 +58,30 @@
         /**
          * 需登录的路由配置
          */
-        let loginInfo = JSON.parse(this.app.isLogin())
-        // console.log(loginInfo)
-        let filterPathsLogin = ['/', '/login', '/register', '/forgetPsw', '/my', '/aboutUs', '/help', '/setting']
-        let boolLogin = filterPathsLogin.some((path) => {
-          return toPath === path
-        })
-        if (loginInfo.Step === 0 && loginInfo.Result !== 0) {
-          if (!boolLogin) {
-            // MessageBox({
-            //   title: '',
-            //   message: '点击登录',
-            //   showCancelButton: true
-            // }).then(action => {
-            //   if (action === 'confirm') {
-            //     this.$router.push('/login')
-            //   } else if (action === 'cancel') {
-            //   }
-            // })
-            Toast({
-              message: '请先登录',
-              duration: 2000
-            })
-            this.$router.push('/login')
-          }
-        }
+        // let loginInfo = JSON.parse(this.app.isLogin())
+        // let filterPathsLogin = ['/', '/login', '/register', '/forgetPsw', '/my', '/aboutUs', '/help', '/setting']
+        // let boolLogin = filterPathsLogin.some((path) => {
+        //   return toPath === path
+        // })
+        // if (loginInfo.Step === 0 && loginInfo.Result !== 0) {
+        //   if (!boolLogin) {
+        //     // MessageBox({
+        //     //   title: '',
+        //     //   message: '点击登录',
+        //     //   showCancelButton: true
+        //     // }).then(action => {
+        //     //   if (action === 'confirm') {
+        //     //     this.$router.push('/login')
+        //     //   } else if (action === 'cancel') {
+        //     //   }
+        //     // })
+        //     Toast({
+        //       message: '请先登录',
+        //       duration: 2000
+        //     })
+        //     this.$router.push('/login')
+        //   }
+        // }
       }
     }
   }
