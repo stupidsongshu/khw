@@ -107,10 +107,10 @@
     border-bottom-left-radius: 3px
 
   .mt-range-thumb
-    width: 33px !important
-    height: 33px !important
+    width: 100px !important
+    height: 100px !important
     background-image: url("../assets/img/slider_money.png")
-    background-size: 33px 33px
+    background-size: 100px 100px
 </style>
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="stylus">

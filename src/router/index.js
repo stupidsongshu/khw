@@ -2,7 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import store from './../store'
 // 首页
-import Home from '@/components/home'
+// import Home from '@/components/home'
 // 登录注册
 import Login from '@/components/login/login'
 import ForgetPsw from '@/components/login/forgetPsw'
@@ -13,7 +13,7 @@ import NewsActivity from '@/components/newsCenter/activity'
 import NewsDeal from '@/components/newsCenter/deal'
 import NewsNotification from '@/components/newsCenter/notification'
 // 借款
-import LoanIndex from '@/components/loan/index'
+import Khw from '@/components/loan/khw'
 import Loan from '@/components/loan/loan'
 import LoanCode from '@/components/loan/loanCode'
 import LoanDeal from '@/components/loan/loanDeal'
@@ -63,14 +63,15 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: Home,
-    meta: {
-      keepAlive: true
-    },
-    beforeEnter: (to, from, next) => {
-      next()
-    }
+    // name: 'home',
+    // component: Home,
+    // meta: {
+    //   keepAlive: true
+    // },
+    // beforeEnter: (to, from, next) => {
+    //   next()
+    // }
+    redirect: '/khw'
   },
   {
     path: '/login',
@@ -114,9 +115,9 @@ const routes = [
   },
   // 借款
   {
-    path: '/loanIndex',
-    name: 'loanIndex',
-    component: LoanIndex
+    path: '/khw',
+    name: 'khw',
+    component: Khw
   },
   {
     path: '/loan',
@@ -315,6 +316,10 @@ const routes = [
     path: '/survey',
     name: 'survey',
     component: Survey
+  },
+  {
+    path: '*',
+    redirect: '/khw'
   }
 ]
 const router = new VueRouter({

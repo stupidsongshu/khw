@@ -269,7 +269,22 @@ Vue.prototype.checkSummaryInfo = function() {
    * @return:
    */
   let loanAcctInfo = this.$store.state.common.summaryInfo
-  // 逾期状态
+
+  // 账户还款中冻结状态
+  if (loanAcctInfo.payFrozenStus !== '0') {
+    // 还款处理中
+    this.$router.push('/repay/repayDeal')
+    return
+  }
+
+  // 临时冻结额度
+  if (loanAcctInfo.tempFrozenAmt > 0) {
+    // 借款处理中
+    that.$router.push('/loanDeal')
+    return
+  }
+
+  // 逾期状态 1逾期 2正常
   if (loanAcctInfo.overdueStatus === 1) {
     this.$router.push('/repay/overdueRepay')
     return
@@ -281,20 +296,7 @@ Vue.prototype.checkSummaryInfo = function() {
     return
   }
 
-  // 临时冻结额度
-  if (loanAcctInfo.tempFrozenAmt > 0) {
-    // 处理中
-    that.$router.push('/loanDeal')
-    return
-  }
-
-  // 账户还款中冻结状态
-  if (loanAcctInfo.payFrozenStus !== 0) {
-    // that.$store.commit('loan_limit_max_save', data.baseTotCreLine)
-    this.$router.push('/repayDeal')
-  }
-
-  this.$router.push('/loanIndex')
+  this.$router.push('/khw')
 }
 
 Vue.prototype.appInit = function() {
@@ -340,7 +342,7 @@ Vue.prototype.appInit = function() {
           console.log(loanAcctInfo)
           // 缓存汇总信息
           that.$store.commit('summaryInfoSave', loanAcctInfo)
-          // that.checkSummaryInfo()
+          that.checkSummaryInfo()
         } else {
           Toast({
             message: data.returnMsg,
@@ -390,4 +392,21 @@ new Vue({
 
     this.appInit()
   }
+  // filters: {
+  //   dateformat: function(val) {
+  //     let tmp = val.split(' ')[0]
+  //     return tmp.split('-').join('/')
+  //   }
+  // }
+})
+
+Vue.filter('dateformat', function(value) {
+  let tmp = value.split(' ')[0]
+  // return tmp.split('-').join('/')
+  return tmp.replace(/(\d{4})(\d{2})(\d{2})/g, '$1-$2-$3')
+})
+Vue.filter('datepoint', function(value) {
+  let tmp = value.split(' ')[0]
+  // return tmp.split('-').join('/')
+  return tmp.replace(/(\d{4})(\d{2})(\d{2})/g, '$1.$2.$3')
 })

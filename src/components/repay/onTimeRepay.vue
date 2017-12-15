@@ -9,28 +9,28 @@
     <div class="banner">
       <div class="title">当前应还</div>
       <div class="amount">
-        <span class="icon-money"></span> 691.<span class="decimals">14</span>
+        <span class="icon-money"></span> {{payOffAmtInt}}.<span class="decimals">{{payOffAmtFlo}}</span>
       </div>
-      <div class="time">最近还款日：2017/07/28</div>
+      <div class="time">申请时间：{{transTime | dateformat}}</div>
     </div>
 
     <div class="desc">
       <div class="title">明细</div>
       <div class="item">
         <div class="name">本金</div>
-        <div class="value">2000.00</div>
+        <div class="value">{{payAmt / 100}}</div>
       </div>
       <div class="item">
         <div class="name">当前利息</div>
-        <div class="value">0.69元 <span class="calc-rate"></span></div>
+        <div class="value">{{intTot}}元 <span class="calc-rate"></span></div>
       </div>
       <div class="item">
         <div class="name">还款借记卡</div>
-        <div class="value">中国建设银行（尾号3225）</div>
+        <div class="value">尾号{{debitCardNo}}</div>
       </div>
       <div class="item">
         <div class="name">开卡银行</div>
-        <div class="value">招商银行</div>
+        <div class="value">{{decardOpenBank}}</div>
       </div>
       <div class="item">
         <div class="loan-plan" @click="showRepayPlan">
@@ -51,12 +51,8 @@
       position="bottom"
       modal="false"
       closeOnClickModal="false">
-      <!--<div class="picker-nav">
-        <div>请选择用途</div>
-        <div @click="ensure">确定</div>
-      </div>-->
 
-      <loan-plan :overflowScroll="true"></loan-plan>
+      <loan-plan :overflowScroll="true" :loanPlanList="loanPlanList"></loan-plan>
     </mt-popup>
   </div>
 </template>
@@ -70,46 +66,105 @@
     },
     data() {
       return {
-        popupVisible: false
+        popupVisible: false,
+        // 单笔结清还款金额
+        payOffAmt: 0,
+        payOffAmtInt: 0,
+        payOffAmtFlo: 0,
+        transTime: '',
+        // 本金
+        payAmt: 0,
+        // 利息
+        intTot: 0,
+        // 借记卡卡号
+        debitCardNo: '',
+        // 开户行
+        decardOpenBank: '',
+        // 中银交易订单号
+        paygateOrderId: '',
+        // 实际分期数
+        realInstalPeriod: 0,
+        // 还款计划
+        loanPlanList: []
       }
     },
     created() {
-      // let that = this
-      // let commonParams = this.$store.state.common.commonParams
-      // let ua = commonParams.ua
-      // let call = 'Loan.cashExtractDetail'
-      // let timestamp = new Date().getTime()
-      // let sign = this.sign(ua, call, timestamp)
-      // let paramString = JSON.stringify({
-      //   ua: ua,
-      //   call: call,
-      //   args: {
-      //     customerId: commonParams.args.customerId,
-      //     mobileNo: commonParams.args.mobileNo,
-      //     token: commonParams.args.token,
-      //     loanAcctNo: commonParams.args.loanAcctNo
-      //   },
-      //   sign: sign,
-      //   timestamp: timestamp
-      // })
-      //
-      // this.$http.post('/khw/c/h', paramString).then(res => {
-      //   let data = res.data
-      //   console.log(data.response)
-      //   if (data.returnCode === '000000') {
-      //     let payOffAmtStr = data.response.payOffAmt.toString()
-      //     this.payOffAmtInt = payOffAmtStr.substring(0, payOffAmtStr.length - 2)
-      //     this.payOffAmtFlo = payOffAmtStr.substring(payOffAmtStr.length - 2)
-      //     this.transTime = data.response.transTime
-      //   }
-      // })
+      let summaryInfo = this.$store.state.common.summaryInfo
+      this.debitCardNo = summaryInfo.debitCardNo.substring(summaryInfo.debitCardNo.length - 4)
+      this.decardOpenBank = summaryInfo.decardOpenBank
+
+      let commonParams = this.$store.state.common.commonParams
+      let ua = commonParams.ua
+      let call = 'Loan.cashExtractDetail'
+      let timestamp = new Date().getTime()
+      let sign = this.sign(ua, call, timestamp)
+      let paramString = JSON.stringify({
+        ua: ua,
+        call: call,
+        args: {
+          customerId: commonParams.args.customerId,
+          mobileNo: commonParams.args.mobileNo,
+          token: commonParams.args.token,
+          loanAcctNo: commonParams.args.loanAcctNo
+        },
+        sign: sign,
+        timestamp: timestamp
+      })
+
+      this.$http.post('/khw/c/h', paramString).then(res => {
+        let data = res.data
+        if (data.returnCode === '000000') {
+          console.log(data.response)
+          let payOffAmtStr = data.response.payOffAmt.toString()
+          this.payOffAmt = data.response.payOffAmt
+          this.payOffAmtInt = payOffAmtStr.substring(0, payOffAmtStr.length - 2)
+          this.payOffAmtFlo = payOffAmtStr.substring(payOffAmtStr.length - 2)
+          this.transTime = data.response.transTime
+          this.payAmt = data.response.payAmt
+          this.intTot = data.response.intTot
+          this.paygateOrderId = data.response.payGateOrderId
+          this.realInstalPeriod = data.response.realInstalPeriod
+        }
+      })
     },
     methods: {
       back() {
         this.goback()
       },
       showRepayPlan() {
-        this.popupVisible = true
+        let commonParams = this.$store.state.common.commonParams
+        let ua = commonParams.ua
+        let call = 'Loan.repayPlan'
+        let timestamp = new Date().getTime()
+        let sign = this.sign(ua, call, timestamp)
+        let paramString = JSON.stringify({
+          ua: ua,
+          call: call,
+          args: {
+            customerId: commonParams.args.customerId,
+            mobileNo: commonParams.args.mobileNo,
+            token: commonParams.args.token,
+            acctNo: commonParams.args.loanAcctNo,
+            queryBegNum: 1,
+            queryCnt: this.realInstalPeriod,
+            dealFlg: 'B',
+            paymentAmount: this.payOffAmt,
+            installPeriod: this.realInstalPeriod,
+            paygateOrderId: this.paygateOrderId
+          },
+          sign: sign,
+          timestamp: timestamp
+        })
+
+        this.loading()
+        this.$http.post('/khw/c/h', paramString).then(res => {
+          this.closeLoading()
+          let data = res.data
+          if (data.returnCode === '000000') {
+            this.popupVisible = true
+            this.loanPlanList = data.response.list.splice(0, this.realInstalPeriod)
+          }
+        })
       }
     }
   }

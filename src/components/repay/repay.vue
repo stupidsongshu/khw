@@ -69,8 +69,7 @@
         overdue: false,
         payOffAmtInt: 0,
         payOffAmtFlo: 0,
-        transTime: '',
-        currPayPeriod: 0
+        transTime: ''
       }
     },
     created() {
@@ -109,15 +108,12 @@
           this.payOffAmtInt = payOffAmtStr.substring(0, payOffAmtStr.length - 2)
           this.payOffAmtFlo = payOffAmtStr.substring(payOffAmtStr.length - 2)
           this.transTime = data.response.transTime
-          this.currPayPeriod = data.response.currPayPeriod
         }
       })
     },
     methods: {
       onTimeRepay() {
         this.$router.push('/repay/onTimeRepay')
-        // this.$router.push({path: '/repay/onTimeRepay/{{currPayPeriod}}'})
-        // this.$router.push({name: 'onTimeRepay', params: {currPayPeriod: 123}})
       },
       overdueTimeRepay() {
         this.$router.push('/repay/overdueRepay')
@@ -129,7 +125,6 @@
     filters: {
       date: function(val) {
         let tmp = val.split(' ')[0]
-        console.log(tmp.split('-'))
         return tmp.split('-').join('/')
       }
     }

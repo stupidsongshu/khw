@@ -24,9 +24,6 @@ const mutations = {
   loan_limit_save(state, payload) {
     state.loan_limit = payload
   },
-  loan_limit_max_save(state, payload) {
-    state.loan_limit_max = payload
-  },
   loan_status_save(state, payload) {
     state.loan_status = payload
   }

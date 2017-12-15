@@ -28,13 +28,13 @@
         </div>
         <div>
           <span class="name">日利率</span>
-          <span class="value">0.58%</span>
+          <span class="value">{{nowDayRate}}%</span>
         </div>
       </div>
       <div class="item">
         <div>
           <span class="name">收款银行</span>
-          <span class="value">建设银行（8871）</span>
+          <span class="value">{{decardOpenBank}}（{{debitCardNo}}）</span>
         </div>
       </div>
 
@@ -42,7 +42,7 @@
         <div class="item">
           <div class="name">验证码</div>
           <div class="code-input">
-            <input type="number" placeholder="请输入短信验证码" v-model="vcode" oninput=" if(value.length>6){value = value.slice(0,6)}">
+            <input type="number" placeholder="请输入短信验证码(测试为6个8)" v-model="vcode" oninput=" if(value.length>6){value = value.slice(0,6)}">
           </div>
           <div class="code-get">
             <button class="code-btn" v-if="!hasGetCode" @click="getCode">发送验证码</button>
@@ -76,7 +76,7 @@
         <div>请选择用途</div>
         <div @click="ensure">确定</div>
       </div>
-      <mt-picker :slots="yearSlot" @change="onChange" :visible-item-count="3" value-key="val"></mt-picker>
+      <mt-picker :slots="loanPurposeSlot" @change="onChange" :visible-item-count="5" value-key="loanPurpose"></mt-picker>
     </mt-popup>
 
   </div>
@@ -90,52 +90,59 @@
       return {
         popupVisible: false,
         purpose: '',
-        yearSlot: [{
+        loanPurposeSlot: [{
           flex: 1,
           values: [
             {
+              id: '0',
+              loanPurpose: ' '
+            },
+            {
               id: '1',
-              val: '装修'
+              loanPurpose: '装修'
             },
             {
               id: '2',
-              val: '婚庆'
+              loanPurpose: '婚庆'
             },
             {
               id: '3',
-              val: '旅游'
+              loanPurpose: '旅游'
             },
             {
               id: '4',
-              val: '教育'
+              loanPurpose: '教育'
             },
             {
               id: '5',
-              val: '租房'
+              loanPurpose: '租房'
             },
             {
               id: '6',
-              val: '汽车周边'
+              loanPurpose: '汽车周边'
             },
             {
               id: '7',
-              val: '电子数码产品'
+              loanPurpose: '电子数码产品'
             },
             {
               id: '8',
-              val: '医疗'
+              loanPurpose: '医疗'
             },
             {
               id: 'A',
-              val: '家用电器'
+              loanPurpose: '家用电器'
             },
             {
               id: 'B',
-              val: '家具家居'
+              loanPurpose: '家具家居'
             }
           ],
-          className: 'slot1'
+          className: 'slot'
         }],
+        nowDayRate: 0,
+        decardOpenBank: '',
+        debitCardNo: '',
         vcode: '',
         loanUseId: '',
         hasGetCode: false,
@@ -153,8 +160,12 @@
     },
     created() {
       let that = this
+      let summaryInfo = this.$store.state.common.summaryInfo
+      this.nowDayRate = summaryInfo.nowDayRate
+      this.decardOpenBank = summaryInfo.decardOpenBank
+      this.debitCardNo = summaryInfo.debitCardNo.substring(summaryInfo.debitCardNo.length - 4)
+
       let commonParams = this.$store.state.common.commonParams
-      console.log(commonParams)
       let ua = commonParams.ua
       let call = 'Loan.repayPlan'
       let timestamp = new Date().getTime()
@@ -183,7 +194,11 @@
         if (data.returnCode === '000000') {
           let dataS = data.response
           that.loanPlanList = dataS.list.splice(0, that.loanDuration)
+        } else {
+          that.toast(data.returnMsg)
         }
+      }).catch(err => {
+        that.toast(err.returnMsg)
       })
     },
     methods: {
@@ -201,7 +216,11 @@
         let info = values[0]
         if (info !== undefined) {
           console.log(info.id)
+          this.purpose = info.loanPurpose
           this.loanUseId = info.id
+          if (info.loanPurpose === ' ') {
+            this.purpose = ''
+          }
         }
       },
       getCode() {
@@ -248,6 +267,15 @@
       },
       // 借款
       loanBtn() {
+        if (this.purpose === '') {
+          this.toast('请选择贷款用途')
+          return
+        }
+        if (this.vcode.trim() === '') {
+          this.toast('请先获取验证码')
+          return
+        }
+
         let that = this
         let commonParams = this.$store.state.common.commonParams
         let ua = commonParams.ua
@@ -276,16 +304,14 @@
           let data = res.data
           console.log(data)
           if (data.returnCode === '000000') {
-            let loanAcctInfo = data.response.loanAcctInfo
-            // let cashExtract = data.response.cashExtract
+            console.log(data.response)
             // 更新缓存
-            that.$store.commit('summaryInfoSave', loanAcctInfo)
-
-            // if (loanAcctInfo.tempFrozenAmt > 0) {
-            //   // 处理中
-            //   that.$router.push('/loanDeal')
-            // }
+            that.$store.commit('summaryInfoSave', data.response.loanAcctInfo)
+            this.$store.commit('cashExtractSave', data.response.cashExtract)
+            that.checkSummaryInfo()
           }
+        }).catch(err => {
+          that.toast(err.returnMsg)
         })
       }
     },

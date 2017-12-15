@@ -50,10 +50,6 @@
       position="bottom"
       modal="false"
       closeOnClickModal="false">
-      <!--<div class="picker-nav">
-        <div>请选择用途</div>
-        <div @click="ensure">确定</div>
-      </div>-->
 
       <loan-plan :overflowScroll="true"></loan-plan>
     </mt-popup>

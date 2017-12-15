@@ -9,35 +9,51 @@
     <div class="repay-deal-progress">
       <div class="step">
         <ul class="step-progress">
-          <li class="step-content active">
+          <li class="step-content" :class="{active: status >= 0}">
             <div class="step-icon icon1"></div>
             <div class="step-line"></div>
             <div class="step-desc">提交成功</div>
-            <div class="step-time">2017.10.09</div>
+            <div class="step-time">{{transTime | datepoint}}</div>
           </li>
-          <li class="step-content active">
+          <li class="step-content" :class="{active: status >= 1}">
             <div class="step-icon icon2"></div>
             <div class="step-line"></div>
             <div class="step-desc">银行处理中</div>
-            <div class="step-time">2017.10.09</div>
+            <div class="step-time" v-if="status === 1">{{transTime | datepoint}}</div>
           </li>
-          <li class="step-content">
+          <li class="step-content" :class="{active: status >= 2}">
             <div class="step-icon icon3"></div>
             <div class="step-line"></div>
             <div class="step-desc">还款成功</div>
-            <div class="step-time">2017.10.09</div>
+            <div class="step-time" v-if="status === 2">{{transTimeS | datepoint}}</div>
           </li>
         </ul>
       </div>
     </div>
 
     <div class="banner-wrapper">
-      <div class="banner">
+      <div class="banner" v-show="status === 0">
+        <div class="title">提交成功</div>
+        <div class="amount">
+          <span class="icon-money"></span> {{amountInt}}.<span class="decimals">{{amountFlo}}</span>
+        </div>
+        <div class="time">申请时间：{{transTime | dateformat}}</div>
+      </div>
+
+      <div class="banner" v-show="status === 1">
         <div class="title">银行处理中</div>
         <div class="amount">
-          <span class="icon-money"></span> 691.<span class="decimals">14</span>
+          <span class="icon-money"></span> {{amountInt}}.<span class="decimals">{{amountFlo}}</span>
         </div>
-        <div class="time">最近还款日：2017/07/28</div>
+        <div class="time">申请时间：{{transTime | dateformat}}</div>
+      </div>
+
+      <div class="banner" v-show="status === 3">
+        <div class="title">还款成功</div>
+        <div class="amount">
+          <span class="icon-money"></span> {{amountInt}}.<span class="decimals">{{amountFlo}}</span>
+        </div>
+        <div class="time">申请时间：{{transTimeS | dateformat}}</div>
       </div>
     </div>
 
@@ -52,7 +68,7 @@
       </div>
       <div class="item">
         <div class="name">需还总额</div>
-        <div class="value">2000.0元</div>
+        <div class="value">{{amount}}元</div>
       </div>
     </div>
   </div>
@@ -62,13 +78,130 @@
   import step from './../common/step'
 
   export default {
+    components: {
+      step
+    },
+    data() {
+      return {
+        // 还款处理状态 0提交成功 1银行处理中 2还款成功 3还款失败
+        status: 0,
+        // 还款提交成功、处理中时间
+        transTime: '',
+        // 还款成功时间
+        transTimeS: '',
+        // 还款总额
+        amount: 0,
+        // 还款总额整数部分
+        amountInt: 0,
+        // 还款总额小数部分
+        amountFlo: 0,
+        // 是否刷新接口
+        isRefresh: true
+      }
+    },
+    created() {
+      this.checkRepayDeal()
+
+      let that = this
+      if (this.isRefresh) {
+        var timer = setInterval(function() {
+          that.checkRepayDeal()
+        }, 3000)
+      } else {
+        clearInterval(timer)
+      }
+
+      // let commonParams = this.$store.state.common.commonParams
+      // let ua = commonParams.ua
+      // let call = 'Loan.cashRepay'
+      // let timestamp = new Date().getTime()
+      // let sign = this.sign(ua, call, timestamp)
+      // let paramString = JSON.stringify({
+      //   ua: ua,
+      //   call: call,
+      //   args: {
+      //     customerId: commonParams.args.customerId,
+      //     mobileNo: commonParams.args.mobileNo,
+      //     token: commonParams.args.token,
+      //     loanAcctNo: commonParams.args.loanAcctNo,
+      //     returnType: 4,
+      //     // 还款金额1
+      //     // amount: summaryInfo.realTotalAmount
+      //     amount: 8738
+      //   },
+      //   sign: sign,
+      //   timestamp: timestamp
+      // })
+      //
+      // this.loading()
+      // this.$http.post('/khw/c/h', paramString).then(res => {
+      //   this.closeLoading()
+      //   let data = res.data
+      //   if (data.returnCode === '000000') {
+      //     console.log(data.response)
+      //     // 缓存汇总信息
+      //     this.$store.commit('summaryInfoSave', data.response.loanAcctInfo)
+      //     this.$store.commit('cashExtractSave', data.response.cashExtract)
+      //     this.checkSummaryInfo()
+      //   }
+      // })
+    },
     methods: {
       back() {
         this.goback()
+      },
+      checkRepayDeal() {
+        let cashRepay = this.$store.state.common.cashRepay
+        // console.log(cashRepay.amount, cashRepay.merchantOrderId)
+        let commonParams = this.$store.state.common.commonParams
+        let ua = commonParams.ua
+        let call = 'Loan.singleTrans'
+        let timestamp = new Date().getTime()
+        let sign = this.sign(ua, call, timestamp)
+        let paramString = JSON.stringify({
+          ua: ua,
+          call: call,
+          args: {
+            customerId: commonParams.args.customerId,
+            mobileNo: commonParams.args.mobileNo,
+            token: commonParams.args.token,
+            loanAcctNo: commonParams.args.loanAcctNo,
+            // 单笔交易金额(交易后服务器返回)
+            returnAmt: cashRepay.amount,
+            // 单笔交易订单号(交易后服务器返回)
+            oriMerchantOrderId: cashRepay.merchantOrderId
+            // 单笔交易交易时间(交易后服务器返回)
+            // oriPayTime:
+          },
+          sign: sign,
+          timestamp: timestamp
+        })
+
+        this.loading()
+        this.$http.post('/khw/c/h', paramString).then(res => {
+          this.closeLoading()
+          let data = res.data
+          if (data.returnCode === '000000') {
+            let res = data.response
+            console.log(res)
+            // transStus 0成功 1失败 2处理中 9订单不存在
+            if (res.transStus === 0) {
+              this.status = 2
+              this.transTimeS = res.transTime
+            } else if (res.transStus === 1) {
+              this.status = 3
+              this.isRefresh = false
+              this.toast('还款失败，请稍后重试')
+              this.$router.push('/repay')
+            } else if (res.transStus === 2) {
+              this.status = 1
+            } else if (res.transStus === 9) {
+              this.isRefresh = false
+              this.toast('订单不存在')
+            }
+          }
+        })
       }
-    },
-    components: {
-      step
     }
   }
 </script>

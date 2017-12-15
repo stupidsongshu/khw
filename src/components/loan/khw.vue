@@ -48,7 +48,7 @@
 
     <mt-tabbar fixed>
       <mt-tab-item id="loan">
-        <router-link to="/loanIndex">
+        <router-link to="/khw">
           <div class="self-tab-item">
             <img slot="icon" src="../../assets/img/bottom_icon_01_click.png">
             <span class="isSelected">借款</span>
@@ -56,7 +56,8 @@
         </router-link>
       </mt-tab-item>
       <mt-tab-item id="my">
-        <router-link to="/my">
+        <!--<router-link to="/my">-->
+        <router-link to="">
           <div class="self-tab-item">
             <img slot="icon" src="../../assets/img/bottom_icon_03_nor.png">
             <span>我的</span>
