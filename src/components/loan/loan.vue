@@ -190,7 +190,6 @@
       })
       this.$http.post('/khw/c/h', paramString).then(res => {
         let data = res.data
-        console.log(data)
         if (data.returnCode === '000000') {
           let dataS = data.response
           that.loanPlanList = dataS.list.splice(0, that.loanDuration)

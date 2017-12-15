@@ -1,6 +1,6 @@
-<template>
+ <template>
   <swiper :options="swiperOption" v-if="phoneArr">
-    <swiper-slide class="phone-item" v-for="phone in phoneArr">
+    <swiper-slide class="phone-item" v-for="phone in phoneArr" :key="phone.id">
       {{phone.number}}成功借款{{phone.amount}}元
     </swiper-slide>
   </swiper>
@@ -70,6 +70,7 @@
 
       for (var i = 0; i < 15; i++) {
         this.phoneArr.push({
+          id: i,
           number: generateNumber(),
           amount: generateAmount()
         })

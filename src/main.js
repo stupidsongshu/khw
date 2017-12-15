@@ -339,7 +339,7 @@ Vue.prototype.appInit = function() {
         let data = res.data
         if (data.returnCode === '000000') {
           let loanAcctInfo = data.response
-          console.log(loanAcctInfo)
+          that.$store.commit('loan_max_save', loanAcctInfo.baseTotCreLine)
           // 缓存汇总信息
           that.$store.commit('summaryInfoSave', loanAcctInfo)
           that.checkSummaryInfo()

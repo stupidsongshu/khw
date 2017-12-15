@@ -28,11 +28,13 @@
     </div>
 
     <div class="range">
-      <mt-range v-model="loanLimit" :min="loanLimitMin" :max="loanLimitMax" :step="100" :bar-height="3"></mt-range>
+      <mt-range v-model="loanLimit" :min="loanMin" :max="loanMax" :step="100" :bar-height="3"></mt-range>
+
       <div class="clearfix range-num">
-        <span class="pull-left">{{loanLimitMin}}</span>
-        <span class="pull-right">{{loanLimitMax}}</span>
+        <span class="pull-left">{{loanMin}}</span>
+        <span class="pull-right">{{loanMax}}</span>
       </div>
+
       <div class="select-month">
         <mt-button :class="{active: loanDuration === 3}" @click="selectLoanDuration(3)">3个月</mt-button>
         <mt-button :class="{active: loanDuration === 6}" @click="selectLoanDuration(6)">6个月</mt-button>
@@ -75,7 +77,7 @@
     name: 'home',
     data() {
       return {
-        loanLimitMin: 500
+        loanMin: 500
       }
     },
     components: {
@@ -87,14 +89,15 @@
       }
     },
     computed: {
-      loanLimitMax() {
-        let summaryInfo = this.$store.state.common.summaryInfo
-        return summaryInfo ? summaryInfo.baseTotCreLine / 100 : 20000
+      // 最大额度
+      loanMax() {
+        return this.$store.state.loan.loan_max / 100
       },
+      // 申请额度
       loanLimit: {
         // getter
         get: function() {
-          return this.$store.state.loan.loan_limit / 100
+          return this.$store.state.loan.loan_max / 100 / 2
         },
         // setter
         set: function(newValue) {
@@ -108,6 +111,11 @@
         return this.$store.state.common.activeTabIndex
       }
     }
+    // watch: {
+    //   loanLimit(newValue, oldValue) {
+    //     this.$store.commit('loan_limit_save', newValue * 100)
+    //   }
+    // }
   }
 </script>
 
