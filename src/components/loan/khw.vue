@@ -48,7 +48,7 @@
 
     <div class="footer-txt">"卡还王"由麦广互娱与中银消费金融联合打造</div>
 
-    <mt-tabbar fixed>
+    <!--<mt-tabbar fixed>
       <mt-tab-item id="loan">
         <router-link to="/khw">
           <div class="self-tab-item">
@@ -58,7 +58,6 @@
         </router-link>
       </mt-tab-item>
       <mt-tab-item id="my">
-        <!--<router-link to="/my">-->
         <router-link to="">
           <div class="self-tab-item">
             <img slot="icon" src="../../assets/img/bottom_icon_03_nor.png">
@@ -66,7 +65,7 @@
           </div>
         </router-link>
       </mt-tab-item>
-    </mt-tabbar>
+    </mt-tabbar>-->
   </div>
 </template>
 
@@ -97,10 +96,12 @@
       loanLimit: {
         // getter
         get: function() {
-          return this.$store.state.loan.loan_max / 100 / 2
+          // return this.$store.state.loan.loan_max / 100 / 2
+          return this.$store.state.loan.loan_limit / 100
         },
         // setter
         set: function(newValue) {
+          console.log(newValue)
           this.$store.commit('loan_limit_save', newValue * 100)
         }
       },

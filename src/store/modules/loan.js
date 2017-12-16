@@ -9,12 +9,7 @@ const state = {
    */
   loan_duration: 3,
   loan_limit: 1000000,
-  loan_max: 2000000,
-  /**
-   * 借款状态
-   * loan_status: 0成功 1失败 2处理中
-   */
-  loan_status: 2
+  loan_max: 2000000
 }
 
 const getters = {}
@@ -28,9 +23,6 @@ const mutations = {
   },
   loan_max_save(state, payload) {
     state.loan_max = payload
-  },
-  loan_status_save(state, payload) {
-    state.loan_status = payload
   }
 }
 

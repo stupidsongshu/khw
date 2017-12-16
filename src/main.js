@@ -79,7 +79,7 @@ Vue.prototype.goback = function() {
 
 Vue.prototype.loading = function(txt) {
   Indicator.open({
-    text: txt,
+    text: txt | '',
     spinnerType: 'fading-circle'
   })
 }
@@ -280,7 +280,7 @@ Vue.prototype.checkSummaryInfo = function() {
   // 临时冻结额度
   if (loanAcctInfo.tempFrozenAmt > 0) {
     // 借款处理中
-    that.$router.push('/loanDeal')
+    this.$router.push('/loanDeal')
     return
   }
 
@@ -342,7 +342,7 @@ Vue.prototype.appInit = function() {
           that.$store.commit('loan_max_save', loanAcctInfo.baseTotCreLine)
           // 缓存汇总信息
           that.$store.commit('summaryInfoSave', loanAcctInfo)
-          that.checkSummaryInfo()
+          // that.checkSummaryInfo()
         } else {
           Toast({
             message: data.returnMsg,
@@ -372,10 +372,11 @@ new Vue({
     //   return data
     // }]
     axios.interceptors.request.use((config) => {
-      Indicator.open({
-        text: '加载中...',
-        spinnerType: 'fading-circle'
-      })
+      // Indicator.open({
+      //   text: '加载中...',
+      //   spinnerType: 'fading-circle'
+      // })
+
       // if (config.method.toLowerCase() === 'post') {
       //   config.data = qs.stringify(config.data)
       // }
@@ -384,7 +385,7 @@ new Vue({
       return Promise.reject(error)
     })
     axios.interceptors.response.use(function(response) {
-      Indicator.close()
+      // Indicator.close()
       return response
     }, function(error) {
       return Promise.reject(error)
@@ -392,18 +393,12 @@ new Vue({
 
     this.appInit()
   }
-  // filters: {
-  //   dateformat: function(val) {
-  //     let tmp = val.split(' ')[0]
-  //     return tmp.split('-').join('/')
-  //   }
-  // }
 })
 
 Vue.filter('dateformat', function(value) {
   let tmp = value.split(' ')[0]
-  // return tmp.split('-').join('/')
-  return tmp.replace(/(\d{4})(\d{2})(\d{2})/g, '$1-$2-$3')
+  return tmp.split('-').join('/')
+  // return tmp.replace(/(\d{4})(\d{2})(\d{2})/g, '$1/$2/$3')
 })
 Vue.filter('datepoint', function(value) {
   let tmp = value.split(' ')[0]

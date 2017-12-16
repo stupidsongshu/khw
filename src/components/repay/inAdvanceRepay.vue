@@ -22,7 +22,7 @@
       </div>
       <div class="item">
         <div class="name">当前利息</div>
-        <div class="value">{{intTot}}元 <span class="calc-rate"></span></div>
+        <div class="value">{{intTot / 100}}元 <span class="calc-rate"></span></div>
       </div>
       <div class="item">
         <div class="name">还款借记卡</div>
@@ -131,9 +131,9 @@
           timestamp: timestamp
         })
 
-        this.loading()
+        // this.loading()
         this.$http.post('/khw/c/h', paramString).then(res => {
-          this.closeLoading()
+          // this.closeLoading()
           let data = res.data
           if (data.returnCode === '000000') {
             console.log(data.response)

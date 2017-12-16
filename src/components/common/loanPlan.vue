@@ -43,6 +43,10 @@
 </script>
 
 <style lang="stylus" rel="stylesheet/stylus">
+  .mint-popup
+    width: 100%
+</style>
+<style scoped lang="stylus" rel="stylesheet/stylus">
   @import '../../assets/css/base'
 
   .repayment-table
@@ -98,7 +102,4 @@
       flex-shrink: 0
       text-align: center
       font-size: 17px
-
-  .mint-popup
-    width: 100%
 </style>

@@ -56,6 +56,26 @@
       <img class="no-repay-img" src="../../assets/img/no-repay.png" alt="">
       <div class="no-repay-txt">暂无账单</div>
     </div>
+
+
+    <!--<mt-tabbar fixed>
+      <mt-tab-item id="loan">
+        <router-link to="/repay">
+          <div class="self-tab-item">
+            <img slot="icon" src="../../assets/img/bottom_icon_02_click.png">
+            <span class="isSelected">还款</span>
+          </div>
+        </router-link>
+      </mt-tab-item>
+      <mt-tab-item id="my">
+        <router-link to="">
+          <div class="self-tab-item">
+            <img slot="icon" src="../../assets/img/bottom_icon_03_nor.png">
+            <span>我的</span>
+          </div>
+        </router-link>
+      </mt-tab-item>
+    </mt-tabbar>-->
   </div>
 </template>
 

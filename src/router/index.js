@@ -330,7 +330,8 @@ router.beforeEach((to, from, next) => {
   /**
    * 底部tabbar显示隐藏
    */
-  let filterPaths = ['/', '/repay', '/my']
+  // let filterPaths = ['/', '/repay', '/my']
+  let filterPaths = ['/', '/my']
   let bool = filterPaths.some((path) => {
     return to.path === path
   })

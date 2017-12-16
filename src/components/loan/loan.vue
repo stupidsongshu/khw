@@ -222,6 +222,7 @@
           }
         }
       },
+      // 获取验证码
       getCode() {
         let that = this
         this.loading()
@@ -245,7 +246,6 @@
         })
         this.$http.post('/khw/c/h', paramString).then(res => {
           that.closeLoading()
-          console.log(res.data)
           that.toast(res.data.returnMsg)
           if (res.data.response === '000000') {
             that.hasGetCode = true
@@ -306,7 +306,7 @@
             console.log(data.response)
             // 更新缓存
             that.$store.commit('summaryInfoSave', data.response.loanAcctInfo)
-            this.$store.commit('cashExtractSave', data.response.cashExtract)
+            that.$store.commit('cashExtractSave', data.response.cashExtract)
             that.checkSummaryInfo()
           }
         }).catch(err => {
