@@ -36,7 +36,6 @@
       </div>
 
       <div class="select-month">
-        <mt-button :class="{active: loanDuration === 3}" @click="selectLoanDuration(3)">3个月</mt-button>
         <mt-button :class="{active: loanDuration === 6}" @click="selectLoanDuration(6)">6个月</mt-button>
         <mt-button :class="{active: loanDuration === 12}" @click="selectLoanDuration(12)">12个月</mt-button>
       </div>
@@ -76,7 +75,8 @@
     name: 'home',
     data() {
       return {
-        loanMin: 500
+        loanMin: 1000
+        // loanMax: 0
       }
     },
     components: {
@@ -87,6 +87,9 @@
         this.$store.commit('loan_duration_save', time)
       }
     },
+    // created() {
+    //   this.loanMax = this.$store.state.loan.loan_max / 100
+    // },
     computed: {
       // 最大额度
       loanMax() {
@@ -101,7 +104,7 @@
         },
         // setter
         set: function(newValue) {
-          console.log(newValue)
+          // console.log(newValue)
           this.$store.commit('loan_limit_save', newValue * 100)
         }
       },
@@ -198,9 +201,9 @@
       font-size: 13px
     .select-month
       display: flex
+      justify-content: space-between
       width: 100%
       margin: 55px 0 46px 0
-      justify-content: space-between
       button
         width: 88px
         height: 30px

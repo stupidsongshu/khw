@@ -3,13 +3,13 @@
  */
 const state = {
   /**
-   * loan_duration 贷款期数(单位:月 默认3月)
-   * loan_limit    贷款额度(单位:分 默认10000元)
-   * loan_max      最大额度(单位:分 默认20000元)
+   * loan_duration 贷款期数(单位:月 默认6月)
+   * loan_limit    贷款额度(单位:分 默认2000元)
+   * loan_max      最大额度(单位:分 默认50000元)
    */
-  loan_duration: 3,
-  loan_limit: 1000000,
-  loan_max: 2000000
+  loan_duration: 6,
+  loan_limit: 200000,
+  loan_max: 5000000
 }
 
 const getters = {}
@@ -26,7 +26,11 @@ const mutations = {
   }
 }
 
-const actions = {}
+const actions = {
+  loan_max_actions_save(context, payload) {
+    context.commit('loan_max_save', payload)
+  }
+}
 
 export default {
   state,

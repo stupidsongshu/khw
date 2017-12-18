@@ -6,7 +6,7 @@
       </div>
     </mt-header>
 
-    <div class="banner-wrapper" @click="back">
+    <div class="banner-wrapper">
       <div class="banner-container">
         <div class="title"><i class="icon-rate"></i><span>借款金额</span></div>
         <div>
@@ -16,42 +16,53 @@
     </div>
 
     <div class="content-wrapper">
-      <div class="loan-purpose">
-        <span>贷款用途</span>
-        <input type="text" placeholder="请选择" readonly v-model="purpose" @click="selectPurpose">
-        <i class="fa fa-angle-right"></i>
-      </div>
-      <div class="item">
-        <div>
-          <span class="name">贷款期数</span>
-          <span class="value">{{loanDuration}}期</span>
-        </div>
-        <div>
-          <span class="name">日利率</span>
-          <span class="value">{{nowDayRate}}%</span>
-        </div>
-      </div>
-      <div class="item">
-        <div>
-          <span class="name">收款银行</span>
-          <span class="value">{{decardOpenBank}}（{{debitCardNo}}）</span>
+      <div class="loan-purpose-wrapper">
+        <span class="loan-purpose-name">贷款用途：</span>
+        <div class="loan-purpose-select" @click="selectPurpose">
+          <input type="text" placeholder="请选择" readonly v-model="purpose">
+          <i class="fa fa-angle-right"></i>
         </div>
       </div>
 
-      <div class="form">
+      <div class="loan-item">
+        <div class="item-l">
+          <span class="name">贷款期数：</span>
+          <span class="value">{{loanDuration}}期</span>
+        </div>
+        <div class="item-r">
+          <span class="name">月利率：</span>
+          <span class="value">{{dayRate}}%</span>
+        </div>
+      </div>
+
+      <div class="loan-item">
+        <span class="name">收款银行：</span>
+        <span class="value">{{decardOpenBank}}（尾号{{debitCardNo}}）</span>
+      </div>
+
+      <div class="loan-item">
+        <span class="name">验证码：</span>
+        <input type="number" placeholder="请输入短信验证码" v-model="vcode" oninput=" if(value.length>6){value = value.slice(0,6)}">
+        <div class="code-get">
+          <button class="code-btn" v-if="!hasGetCode" @click="getCode">发送验证码</button>
+          <button class="code-btn" v-if="hasGetCode">{{time}}s后重新获取</button>
+        </div>
+      </div>
+
+      <!--<div class="form">
         <div class="item">
           <div class="name">验证码</div>
           <div class="code-input">
-            <input type="number" placeholder="请输入短信验证码(测试为6个8)" v-model="vcode" oninput=" if(value.length>6){value = value.slice(0,6)}">
+            <input type="number" placeholder="请输入短信验证码" v-model="vcode" oninput=" if(value.length>6){value = value.slice(0,6)}">
           </div>
           <div class="code-get">
             <button class="code-btn" v-if="!hasGetCode" @click="getCode">发送验证码</button>
             <button class="code-btn" v-if="hasGetCode">{{time}}s后重新获取</button>
           </div>
         </div>
-      </div>
+      </div>-->
 
-      <div class="item">
+      <div class="loan-item">
         <div class="agreement-wrapper">
           <input type="checkbox" id="agreementInput" checked>
           <label for="agreementInput">我同意并知晓</label><router-link class="agreement" to="">《借款补充协议》</router-link>
@@ -59,7 +70,7 @@
       </div>
     </div>
 
-    <div class="repayment-title">还款攻略</div>
+    <!--<div class="repayment-title">还款攻略</div>-->
     <div class="loan-btn">
       <mt-button class="btn" @click="loanBtn">立即借款</mt-button>
     </div>
@@ -140,7 +151,7 @@
           ],
           className: 'slot'
         }],
-        nowDayRate: 0,
+        dayRate: 0,
         decardOpenBank: '',
         debitCardNo: '',
         vcode: '',
@@ -159,46 +170,124 @@
       }
     },
     created() {
-      let that = this
+      // let that = this
       let summaryInfo = this.$store.state.common.summaryInfo
-      this.nowDayRate = summaryInfo.nowDayRate
       this.decardOpenBank = summaryInfo.decardOpenBank
       this.debitCardNo = summaryInfo.debitCardNo.substring(summaryInfo.debitCardNo.length - 4)
 
-      let commonParams = this.$store.state.common.commonParams
-      let ua = commonParams.ua
-      let call = 'Loan.repayPlan'
-      let timestamp = new Date().getTime()
-      let sign = this.sign(ua, call, timestamp)
-      let paramString = JSON.stringify({
-        ua: ua,
-        call: call,
-        args: {
-          customerId: commonParams.args.customerId,
-          mobileNo: commonParams.args.mobileNo,
-          token: commonParams.args.token,
-          acctNo: commonParams.args.loanAcctNo,
-          queryBegNum: 1,
-          queryCnt: this.$store.state.loan.loan_duration,
-          dealFlg: 'A',
-          paymentAmount: this.$store.state.loan.loan_limit,
-          installPeriod: this.$store.state.loan.loan_duration,
-          paygateOrderId: ''
-        },
-        sign: sign,
-        timestamp: timestamp
-      })
-      this.$http.post('/khw/c/h', paramString).then(res => {
-        let data = res.data
-        if (data.returnCode === '000000') {
-          let dataS = data.response
-          that.loanPlanList = dataS.list.splice(0, that.loanDuration)
-        } else {
-          that.toast(data.returnMsg)
+      // 还款试算
+      // let commonParams = this.$store.state.common.commonParams
+      // let ua = commonParams.ua
+      // let call = 'Loan.repayPlan'
+      // let timestamp = new Date().getTime()
+      // let sign = this.sign(ua, call, timestamp)
+      // let paramString = JSON.stringify({
+      //   ua: ua,
+      //   call: call,
+      //   args: {
+      //     customerId: commonParams.args.customerId,
+      //     mobileNo: commonParams.args.mobileNo,
+      //     token: commonParams.args.token,
+      //     acctNo: commonParams.args.loanAcctNo,
+      //     queryBegNum: 1,
+      //     queryCnt: this.$store.state.loan.loan_duration,
+      //     dealFlg: 'A',
+      //     paymentAmount: this.$store.state.loan.loan_limit,
+      //     installPeriod: this.$store.state.loan.loan_duration,
+      //     paygateOrderId: ''
+      //   },
+      //   sign: sign,
+      //   timestamp: timestamp
+      // })
+      // this.$http.post('/khw/c/h', paramString).then(res => {
+      //   let data = res.data
+      //   if (data.returnCode === '000000') {
+      //     let dataS = data.response
+      //     that.loanPlanList = dataS.list.splice(0, that.loanDuration)
+      //   } else {
+      //     that.toast(data.returnMsg)
+      //   }
+      // }).catch(err => {
+      //   that.toast(err.returnMsg)
+      // })
+
+      // 本金
+      let loanLimit = this.loanLimit
+      // 分期数
+      let loanDuration = this.loanDuration
+      // 月分期费率
+      let monthRate
+      if (loanDuration === 6) {
+        // monthRate = 1.35 / 100
+        monthRate = 0.0135
+        this.dayRate = 1.35
+      } else if (loanDuration === 12) {
+        // monthRate = 1.25 / 100
+        monthRate = 0.0125
+        this.dayRate = 1.25
+      }
+
+      /**
+       * @desc 获取当前日期的下一个月下一天
+       * @param date 格式: '2017-12-18'
+       * @returns 格式: '20180119'
+       */
+      function getNextMonthAndNextDate(date) {
+        var arr = date.split('-')
+        var year = arr[0] // 获取当前日期的年份
+        var month = arr[1] // 获取当前日期的月份
+        var day = arr[2] // 获取当前日期的日
+
+        var year1 = year
+        var month1 = parseInt(month) + 1
+        if (month1 === 13) {
+          year1 = parseInt(year1) + 1
+          month1 = 1
         }
-      }).catch(err => {
-        that.toast(err.returnMsg)
-      })
+        var day1 = parseInt(day) + 1
+        // 当第三个参数为0返回上一个月的最后一天(也是天数)
+        var days1 = new Date(year1, month1, 0).getDate()
+        if (day1 > days1) {
+          day1 = days1
+        }
+        if (month1 < 10) {
+          month1 = '0' + month1
+        }
+
+        return year1 + '' + month1 + '' + day1
+      }
+
+      let year = new Date().getFullYear()
+      let month = new Date().getMonth()
+      let date = new Date().getDate()
+      for (var i = 0; i < loanDuration; i++) {
+        // 分期本金
+        let prePrin = (loanLimit * 100) / loanDuration
+        // 分期利息
+        let preInt = prePrin * monthRate
+        // 还款时间
+        if (parseInt(month) > 12) {
+          year = parseInt(year) + 1
+          month = 1
+        }
+        month++
+        if (parseInt(month) > 12) {
+          year = parseInt(year) + 1
+          month = 1
+        }
+        let dateFormat = year + '-' + month + '-' + date
+        let prePayDay = getNextMonthAndNextDate(dateFormat)
+
+        this.loanPlanList.push({
+          // 分期数
+          paymentPeriod: i + 1,
+          prePayDay: prePayDay,
+          prePrin: prePrin,
+          preInt: preInt,
+          // 还款金额
+          preAmt: prePrin + preInt
+        })
+      }
     },
     methods: {
       back() {
@@ -214,7 +303,6 @@
       onChange(picker, values) {
         let info = values[0]
         if (info !== undefined) {
-          console.log(info.id)
           this.purpose = info.loanPurpose
           this.loanUseId = info.id
           if (info.loanPurpose === ' ') {
@@ -348,6 +436,7 @@
             background-image: url("../../assets/img/icon_rate_white.png")
             background-size: 100% 100%
           span
+            font-size: 15px
             vertical-align: 2px
         .icon-money
           display: inline-block
@@ -356,42 +445,59 @@
           background-image: url('../../assets/img/icon_money.png')
           background-size: 19px 25px
         .loan-amount
-          font-size: 45px
+          font-size: 42px
 
 
     .content-wrapper
+      font-size: 14px
       background-color: #fff
-      .loan-purpose
+      .loan-purpose-wrapper
         display: flex
         align-items: center
         height: 54px
         padding: 0 15px
         border-bottom: 1px solid #e3e3e3
-        span
-          flex-grow: 1
+        .loan-purpose-name
+          flex-basis: 80px
+          width: 80px
           color: color333
-        input
-          flex-grow: 2
+        .loan-purpose-select
+          flex: 1
+          display: flex
+          justify-content: space-between
+          align-items: center
           height: 100%
-          color: color999
-          border: none
-          background-color: transparent
-        i
-          flex-grow: 1
-          text-align: right
-          color: color999
-          font-size: 30px
+          input
+            flex-grow: 2
+            height: 100%
+            color: color999
+            border: none
+            background-color: transparent
+          i
+            flex-grow: 1
+            text-align: right
+            color: color999
+            font-size: 30px
 
-      .item
+      .loan-item
         display: flex
-        justify-content: space-between
         padding: 0 15px
         line-height: 40px
+        .item-l
+          display: flex
+          width: 50%
+        .item-r
+          display: flex
+          width: 50%
+
         .name
-          margin-right: 20px
+          width: 80px
+          flex-basis: 80px
           color: #999
         .value
           color: #333
+        input
+          /*border: none*/
         .agreement-wrapper
           font-size: 13px
           input

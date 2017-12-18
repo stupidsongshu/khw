@@ -273,26 +273,26 @@ Vue.prototype.checkSummaryInfo = function() {
   // 账户还款中冻结状态
   if (loanAcctInfo.payFrozenStus !== '0') {
     // 还款处理中
-    this.$router.push('/repay/repayDeal')
+    this.$router.replace('/repay/repayDeal')
     return
   }
 
   // 临时冻结额度
   if (loanAcctInfo.tempFrozenAmt > 0) {
     // 借款处理中
-    this.$router.push('/loanDeal')
+    this.$router.replace('/loanDeal')
     return
   }
 
   // 逾期状态 1逾期 2正常
   if (loanAcctInfo.overdueStatus === 1) {
-    this.$router.push('/repay/overdueRepay')
+    this.$router.replace('/repay/overdueRepay')
     return
   }
 
   // 实际欠款合计
   if (loanAcctInfo.totalLoanAmt > 0) {
-    this.$router.push('/repay')
+    this.$router.replace('/repay')
     return
   }
 
@@ -302,7 +302,9 @@ Vue.prototype.checkSummaryInfo = function() {
 Vue.prototype.appInit = function() {
   /* eslint-disable no-unreachable */
   let that = this
+  this.loading()
   this.$http.post('/khw/c/l?mobileNo=13786868686').then(res => {
+    that.closeLoading()
     if (res.data.returnCode === '000000') {
       let data = res.data.response
       let args = {
@@ -336,13 +338,15 @@ Vue.prototype.appInit = function() {
       })
 
       that.$http.post('/khw/c/h', paramString).then(res => {
+        that.closeLoading()
         let data = res.data
         if (data.returnCode === '000000') {
           let loanAcctInfo = data.response
           that.$store.commit('loan_max_save', loanAcctInfo.baseTotCreLine)
+          // that.$store.dispatch('loan_max_actions_save', loanAcctInfo.baseTotCreLine)
           // 缓存汇总信息
           that.$store.commit('summaryInfoSave', loanAcctInfo)
-          // that.checkSummaryInfo()
+          that.checkSummaryInfo()
         } else {
           Toast({
             message: data.returnMsg,
@@ -350,9 +354,13 @@ Vue.prototype.appInit = function() {
           })
         }
       }).catch(error => {
+        that.closeLoading()
         console.log(error)
       })
     }
+  }).catch(err => {
+    that.closeLoading()
+    console.log(err)
   })
 }
 
@@ -365,6 +373,7 @@ new Vue({
   components: {App},
   created() {
     axios.defaults.baseURL = 'http://xfjr.ledaikuan.cn:9191'
+    // axios.defaults.baseURL = 'http://114.80.124.254:9191'
     // axios.defaults.transformRequest = [function(data) {
     //   if (data) {
     //     data = JSON.stringify(data)

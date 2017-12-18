@@ -57,6 +57,8 @@ import AgreeAuth from '@/components/personalCertificate/agreeAuth/agreeAuth'
 import WaitAudit from '@/components/personalCertificate/waitAudit/waitAudit'
 // 问卷调查
 import Survey from '@/components/survey/survey'
+// 文档 包括费用说明、各种协议
+import Rate from '@/components/document/rate'
 
 Vue.use(VueRouter)
 
@@ -316,6 +318,11 @@ const routes = [
     path: '/survey',
     name: 'survey',
     component: Survey
+  },
+  {
+    path: '/rate',
+    name: 'rate',
+    component: Rate
   },
   {
     path: '*',
