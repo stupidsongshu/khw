@@ -6,9 +6,9 @@
       <div class="banner">
         <div class="title">未还本金</div>
         <div class="amount">
-          <span class="icon-money"></span> {{payOffAmtInt}}.<span class="decimals">{{payOffAmtFlo}}</span>
+          <span class="icon-money"></span> {{remainAmtInt}}.<span class="decimals">{{remainAmtFlo}}</span>
         </div>
-        <div class="time" v-if="transTime">申请时间：{{transTime | date}}</div>
+        <div class="time">申请时间：{{transTime | dateformat}}</div>
       </div>
 
       <div class="card" v-if="!overdue" @click="onTimeRepay">
@@ -87,9 +87,11 @@
         hasRepay: true,
         // 还款是否逾期
         overdue: false,
-        payOffAmtInt: 0,
-        payOffAmtFlo: 0,
-        transTime: ''
+        transTime: '',
+        // 未还本金整数部分
+        remainAmtInt: 0,
+        // 未还本金小数部分
+        remainAmtFlo: 0
       }
     },
     created() {
@@ -102,7 +104,7 @@
         }
       }
 
-      // let that = this
+      // 单笔用款明细查询
       let commonParams = this.$store.state.common.commonParams
       let ua = commonParams.ua
       let call = 'Loan.cashExtractDetail'
@@ -124,9 +126,11 @@
       this.$http.post('/khw/c/h', paramString).then(res => {
         let data = res.data
         if (data.returnCode === '000000') {
-          let payOffAmtStr = data.response.payOffAmt.toString()
-          this.payOffAmtInt = payOffAmtStr.substring(0, payOffAmtStr.length - 2)
-          this.payOffAmtFlo = payOffAmtStr.substring(payOffAmtStr.length - 2)
+          // 未还本金
+          let remainAmt = data.response.remainAmt.toString()
+          this.remainAmtInt = remainAmt.substring(0, remainAmt.length - 2)
+          this.remainAmtFlo = remainAmt.substring(remainAmt.length - 2)
+          // 申请时间
           this.transTime = data.response.transTime
         }
       })
@@ -140,12 +144,6 @@
       },
       inAdvanceRepay() {
         this.$router.push('/repay/inAdvanceRepay')
-      }
-    },
-    filters: {
-      date: function(val) {
-        let tmp = val.split(' ')[0]
-        return tmp.split('-').join('/')
       }
     }
   }

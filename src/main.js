@@ -99,6 +99,13 @@ Vue.prototype.toast = function(message, duration) {
   })
 }
 
+Vue.prototype.onlyNumber = function(val) {
+  if (!/^\d+$/g.test(val)) {
+    return false
+  }
+  return true
+}
+
 window.addEventListener('resize', function() {
   // alert(1)
   if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {

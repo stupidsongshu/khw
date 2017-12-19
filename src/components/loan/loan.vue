@@ -37,16 +37,18 @@
 
       <div class="loan-item">
         <span class="name">收款银行：</span>
-        <span class="value">{{decardOpenBank}}（尾号{{debitCardNo}}）</span>
+        <span class="value">
+          {{decardOpenBank}}（尾号{{debitCardNo}}）<router-link to="/rate" class="calc-rate"></router-link>
+        </span>
       </div>
 
-      <div class="loan-item">
-        <span class="name">验证码：</span>
-        <input type="number" placeholder="请输入短信验证码" v-model="vcode" oninput=" if(value.length>6){value = value.slice(0,6)}">
-        <div class="code-get">
-          <button class="code-btn" v-if="!hasGetCode" @click="getCode">发送验证码</button>
-          <button class="code-btn" v-if="hasGetCode">{{time}}s后重新获取</button>
-        </div>
+      <div class="loan-code">
+        <span class="code-name">验&nbsp;证&nbsp;码：</span>
+        <!--<input class="code-input" type="number" placeholder="请输入短信验证码" v-model="vcode" oninput=" if(value.length>6){value = value.slice(0,6)}">-->
+        <input class="code-input" type="text" placeholder="请输入短信验证码" v-model="vcode" :keyup="write(vcode)">
+        <!--<input class="code-input" type="text" placeholder="请输入短信验证码" v-model="vcode" @keyup="write1($event, vcode)">-->
+        <button class="code-btn" v-show="!hasGetCode" @click="getCode">发送验证码</button>
+        <button class="code-btn" v-show="hasGetCode">{{time}}s后重新获取</button>
       </div>
 
       <!--<div class="form">
@@ -64,15 +66,15 @@
 
       <div class="loan-item">
         <div class="agreement-wrapper">
-          <input type="checkbox" id="agreementInput" checked>
+          <input type="checkbox" id="agreementInput" :checked="checked" @click="toggleAgree">
           <label for="agreementInput">我同意并知晓</label><router-link class="agreement" to="">《借款补充协议》</router-link>
         </div>
       </div>
     </div>
 
     <!--<div class="repayment-title">还款攻略</div>-->
-    <div class="loan-btn">
-      <mt-button class="btn" @click="loanBtn">立即借款</mt-button>
+    <div class="loan-btn" style="margin: 30px 0;">
+      <mt-button class="btn" @click="loanBtn" :disabled="!checked">立即借款</mt-button>
     </div>
 
     <loan-plan :overflowScroll="false" :loanPlanList="loanPlanList"></loan-plan>
@@ -82,7 +84,8 @@
       popup-transition="popup-fade"
       position="bottom"
       modal="false"
-      closeOnClickModal="false">
+      closeOnClickModal="false"
+      id="loanPlanPopup">
       <div class="picker-nav">
         <div>请选择用途</div>
         <div @click="ensure">确定</div>
@@ -103,52 +106,7 @@
         purpose: '',
         loanPurposeSlot: [{
           flex: 1,
-          values: [
-            {
-              id: '0',
-              loanPurpose: ' '
-            },
-            {
-              id: '1',
-              loanPurpose: '装修'
-            },
-            {
-              id: '2',
-              loanPurpose: '婚庆'
-            },
-            {
-              id: '3',
-              loanPurpose: '旅游'
-            },
-            {
-              id: '4',
-              loanPurpose: '教育'
-            },
-            {
-              id: '5',
-              loanPurpose: '租房'
-            },
-            {
-              id: '6',
-              loanPurpose: '汽车周边'
-            },
-            {
-              id: '7',
-              loanPurpose: '电子数码产品'
-            },
-            {
-              id: '8',
-              loanPurpose: '医疗'
-            },
-            {
-              id: 'A',
-              loanPurpose: '家用电器'
-            },
-            {
-              id: 'B',
-              loanPurpose: '家具家居'
-            }
-          ],
+          values: [],
           className: 'slot'
         }],
         dayRate: 0,
@@ -158,7 +116,8 @@
         loanUseId: '',
         hasGetCode: false,
         time: 60,
-        loanPlanList: []
+        loanPlanList: [],
+        checked: true
       }
     },
     computed: {
@@ -290,11 +249,101 @@
       }
     },
     methods: {
+      toggleAgree() {
+        this.checked = !this.checked
+      },
+      write(val) {
+        if (val.length > 6) {
+          this.vcode = this.vcode.substr(0, 6)
+        }
+
+        // 1
+        // let bool = this.onlyNumber(val)
+        // if (!bool) {
+        //   this.vcode = ''
+        // }
+
+        // 2
+        if (!/^\d+$/g.test(val)) {
+          this.vcode = ''
+        }
+      },
+      write1(e, val) {
+        // console.log(val.length)
+        if (val.length > 6) {
+          console.log(this.vcode)
+          this.vcode = this.vcode.substr(0, 6)
+        }
+        // let keyCode = e.keyCode
+        // console.log(keyCode)
+        // if ((keyCode >= 48 && keyCode <= 57) || keyCode === ) {}
+
+        // console.log(e.key)
+        // let keys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'backsapce', 'enter']
+        // let bool = keys.some(val => {
+        //   return e.key.toLowerCase() === val
+        // })
+        // if (!bool) {
+        // }
+      },
       back() {
         this.goback()
       },
       selectPurpose() {
         this.popupVisible = true
+
+        // fix 弹窗滑动的时候底层页面跟随滚动
+        document.getElementById('loanPlanPopup').addEventListener('touchmove', function(event) {
+          event.preventDefault()
+        }, false)
+
+        // fix 不打开popup默认无值,打开后必须选值
+        this.loanPurposeSlot[0].values = [
+          // {
+          //   id: '0',
+          //   loanPurpose: ' '
+          // },
+          {
+            id: '1',
+            loanPurpose: '装修'
+          },
+          {
+            id: '2',
+            loanPurpose: '婚庆'
+          },
+          {
+            id: '3',
+            loanPurpose: '旅游'
+          },
+          {
+            id: '4',
+            loanPurpose: '教育'
+          },
+          {
+            id: '5',
+            loanPurpose: '租房'
+          },
+          {
+            id: '6',
+            loanPurpose: '汽车周边'
+          },
+          {
+            id: '7',
+            loanPurpose: '电子数码产品'
+          },
+          {
+            id: '8',
+            loanPurpose: '医疗'
+          },
+          {
+            id: 'A',
+            loanPurpose: '家用电器'
+          },
+          {
+            id: 'B',
+            loanPurpose: '家具家居'
+          }
+        ]
       },
       ensure() {
         this.popupVisible = false
@@ -496,8 +545,6 @@
           color: #999
         .value
           color: #333
-        input
-          /*border: none*/
         .agreement-wrapper
           font-size: 13px
           input
@@ -507,17 +554,42 @@
             border: 1px solid main-color
           .agreement
             color: main-color
+      .loan-code
+        display: flex
+        padding: 0 15px
+        line-height: 40px
+        .code-name
+          flex-basis: 80px
+          width: 80px
+          color: #999
+        .code-input
+          flex: 1
+          border: none
+        .code-btn
+          padding-left: 6px
+          white-space: nowrap
+          font-size: 13px
+          border: none
+          border-left: 1px solid main-color
+          background-color: transparent
 
     .repayment-title
       line-height: 44px
       text-align: center
       color: main-color
-    .loan-btn
-      margin: 0 0 16px 0
 
     .picker-nav
       display: flex
       justify-content: space-between
       padding: 5px 15px
       font-size: 14px
+
+  .calc-rate
+    display: inline-block
+    width: 14px
+    height: 16px
+    margin-left: 4px
+    vertical-align: -3px
+    background-image: url("../../assets/img/icon_rate.png")
+    background-size: 100% 100%
 </style>

@@ -9,7 +9,7 @@
     <div class="banner">
       <div class="title">当前应还</div>
       <div class="amount">
-        <span class="icon-money"></span> {{payOffAmtInt}}.<span class="decimals">{{payOffAmtFlo}}</span>
+        <span class="icon-money"></span> {{realTotalAmountInt}}.<span class="decimals">{{realTotalAmountFlo}}</span>
       </div>
       <div class="time">申请时间：{{transTime | dateformat}}</div>
     </div>
@@ -22,7 +22,7 @@
       </div>
       <div class="item">
         <div class="name">当前利息</div>
-        <div class="value">{{intTot / 100}}元 <span class="calc-rate"></span></div>
+        <div class="value">{{intTot / 100}}元 <router-link to="/rate" class="calc-rate"></router-link></div>
       </div>
       <div class="item">
         <div class="name">还款借记卡</div>
@@ -49,9 +49,8 @@
     data() {
       return {
         // 单笔结清还款金额
-        payOffAmt: 0,
-        payOffAmtInt: 0,
-        payOffAmtFlo: 0,
+        realTotalAmountInt: 0,
+        realTotalAmountFlo: 0,
         transTime: '',
         // 本金
         payAmt: 0,
@@ -71,6 +70,10 @@
       this.debitCardNo = summaryInfo.debitCardNo.substring(summaryInfo.debitCardNo.length - 4)
       this.decardOpenBank = summaryInfo.decardOpenBank
       this.realLiquidatedDamages = summaryInfo.realLiquidatedDamages
+      // 当前应还 = 本金 + 利息 + 违约金 (注意:若逾期需加上滞纳费)
+      let realTotalAmount = summaryInfo.realTotalAmount.toString()
+      this.realTotalAmountInt = realTotalAmount.substring(0, realTotalAmount.length - 2)
+      this.realTotalAmountFlo = realTotalAmount.substring(realTotalAmount.length - 2)
 
       let commonParams = this.$store.state.common.commonParams
       let ua = commonParams.ua
@@ -93,11 +96,6 @@
       this.$http.post('/khw/c/h', paramString).then(res => {
         let data = res.data
         if (data.returnCode === '000000') {
-          console.log(data.response)
-          let payOffAmtStr = data.response.payOffAmt.toString()
-          this.payOffAmt = data.response.payOffAmt
-          this.payOffAmtInt = payOffAmtStr.substring(0, payOffAmtStr.length - 2)
-          this.payOffAmtFlo = payOffAmtStr.substring(payOffAmtStr.length - 2)
           this.transTime = data.response.transTime
           this.payAmt = data.response.payAmt
           this.intTot = data.response.intTot

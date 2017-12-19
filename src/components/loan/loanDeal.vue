@@ -6,9 +6,9 @@
       <div class="status" v-show="status === 0">提交成功</div>
       <div class="status" v-show="status === 1">银行处理中</div>
       <div class="status" v-show="status === 2">借款成功</div>
-      <div class="loan-amount">
+      <!--<div class="loan-amount">
         <span class="icon-money"></span>{{payAmtInt}}.<span class="decimals">{{payAmtFlo}}</span>
-      </div>
+      </div>-->
 
       <div class="step">
         <ul class="step-progress">
@@ -31,7 +31,7 @@
       </div>
     </div>
 
-    <div class="loan-desc">
+    <!--<div class="loan-desc">
       <ul>
         <li class="item clearfix">
           <div class="pull-left name">还款期限</div>
@@ -46,13 +46,27 @@
           <div class="pull-left value">{{payOffAmt / 100}}元</div>
         </li>
       </ul>
-    </div>
+    </div>-->
 
-    <div class="hint" v-if="status === 2">
+    <!--<div class="hint" v-if="status === 2">
       款项已打至您的{{decardOpenBank}}(尾号{{debitCardNo}})账户<br>
       具体到账时间以银行为准
+    </div>-->
+
+    <div class="loan-btn count-down" v-show="status > 1">
+      <mt-button class="btn">{{restTime}}s后返回</mt-button>
     </div>
-    <div v-show="status > 1">{{restTime}}s后返回</div>
+
+    <mt-popup
+      v-model="popupVisible"
+      popup-transition="popup-fade"
+      :modal="true"
+      :closeOnClickModal="false">
+      <div class="deal-success">
+        <img class="deal-success-gif" src="../../assets/img/deal-success-loan.gif" alt="">
+        <div class="deal-success-txt">您的钱款正在处理哦~请耐心等待</div>
+      </div>
+    </mt-popup>
   </div>
 </template>
 
@@ -60,73 +74,74 @@
   export default {
     data() {
       return {
+        popupVisible: false,
         // 借款处理状态 0提交成功 1银行处理中 2借款成功 3借款失败
         status: 0,
         // 借款提交成功、处理中时间
-        transTime: '',
+        // transTime: '',
         // 借款成功时间
-        transTimeS: '',
+        // transTimeS: '',
         // 借款额度
-        payAmt: 0,
+        // payAmt: 0,
         // 借款额度整数部分
-        payAmtInt: 0,
+        // payAmtInt: 0,
         // 借款额度小数部分
-        payAmtFlo: 0,
+        // payAmtFlo: 0,
         // 还款总额
-        payOffAmt: 0,
+        // payOffAmt: 0,
         // 是否刷新接口
         isRefresh: true,
         // 还款期限
-        repayDuration: 0,
+        // repayDuration: 0,
         // 日利率
-        nowDayRate: 0,
+        // nowDayRate: 0,
         // 借记卡开户行
-        decardOpenBank: '',
+        // decardOpenBank: '',
         // 借记卡号
-        debitCardNo: '',
+        // debitCardNo: '',
         restTime: 5
       }
     },
     created() {
-      this.repayDuration = this.$store.state.loan.loan_duration
-      let summaryInfo = this.$store.state.common.summaryInfo
-      this.nowDayRate = summaryInfo.nowDayRate
-      this.decardOpenBank = summaryInfo.decardOpenBank
-      this.debitCardNo = summaryInfo.debitCardNo.substring(summaryInfo.debitCardNo.length - 4)
+      // this.repayDuration = this.$store.state.loan.loan_duration
+      // let summaryInfo = this.$store.state.common.summaryInfo
+      // this.nowDayRate = summaryInfo.nowDayRate
+      // this.decardOpenBank = summaryInfo.decardOpenBank
+      // this.debitCardNo = summaryInfo.debitCardNo.substring(summaryInfo.debitCardNo.length - 4)
 
       // 单笔用款明细查询
-      let commonParams = this.$store.state.common.commonParams
-      let ua = commonParams.ua
-      let call = 'Loan.cashExtractDetail'
-      let timestamp = new Date().getTime()
-      let sign = this.sign(ua, call, timestamp)
-      let paramString = JSON.stringify({
-        ua: ua,
-        call: call,
-        args: {
-          customerId: commonParams.args.customerId,
-          mobileNo: commonParams.args.mobileNo,
-          token: commonParams.args.token,
-          loanAcctNo: commonParams.args.loanAcctNo
-        },
-        sign: sign,
-        timestamp: timestamp
-      })
-
-      this.$http.post('/khw/c/h', paramString).then(res => {
-        let data = res.data
-        if (data.returnCode === '000000') {
-          console.log(data.response)
-          let dataS = data.response
-
-          this.payOffAmt = dataS.payOffAmt
-          this.payAmt = dataS.payAmt
-
-          let payAmtStr = dataS.payAmt.toString()
-          this.payAmtInt = payAmtStr.substring(0, payAmtStr.length - 2)
-          this.payAmtFlo = payAmtStr.substring(payAmtStr.length - 2)
-        }
-      })
+      // let commonParams = this.$store.state.common.commonParams
+      // let ua = commonParams.ua
+      // let call = 'Loan.cashExtractDetail'
+      // let timestamp = new Date().getTime()
+      // let sign = this.sign(ua, call, timestamp)
+      // let paramString = JSON.stringify({
+      //   ua: ua,
+      //   call: call,
+      //   args: {
+      //     customerId: commonParams.args.customerId,
+      //     mobileNo: commonParams.args.mobileNo,
+      //     token: commonParams.args.token,
+      //     loanAcctNo: commonParams.args.loanAcctNo
+      //   },
+      //   sign: sign,
+      //   timestamp: timestamp
+      // })
+      //
+      // this.$http.post('/khw/c/h', paramString).then(res => {
+      //   let data = res.data
+      //   if (data.returnCode === '000000') {
+      //     console.log(data.response)
+      //     let dataS = data.response
+      //
+      //     this.payOffAmt = dataS.payOffAmt
+      //     this.payAmt = dataS.payAmt
+      //
+      //     let payAmtStr = dataS.payAmt.toString()
+      //     this.payAmtInt = payAmtStr.substring(0, payAmtStr.length - 2)
+      //     this.payAmtFlo = payAmtStr.substring(payAmtStr.length - 2)
+      //   }
+      // })
 
       //
       this.checkLoanDeal()
@@ -174,6 +189,7 @@
         // this.loading()
         this.$http.post('/khw/c/h', paramString).then(res => {
           // this.closeLoading()
+          that.popupVisible = true
           let data = res.data
           if (data.returnCode === '000000') {
             let res = data.response
@@ -181,7 +197,8 @@
             // transStus 0成功 1失败 2处理中 9订单不存在
             if (res.transStus === 0) {
               this.status = 2
-              this.transTimeS = res.transTime
+              // this.transTimeS = res.transTime
+              this.toast('借款成功')
             } else if (res.transStus === 1) {
               this.status = 3
               this.toast('借款失败，请稍后重试')
@@ -194,6 +211,7 @@
 
             // 返回处理结果后
             if (res.transStus !== 2) {
+              that.popupVisible = false
               that.isRefresh = false
               that.updateLoanAcctInfo()
             }
@@ -253,76 +271,12 @@
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
   @import '../../assets/css/base.styl'
+  @import '../../assets/css/loanReapyDeal.styl'
 
   .loan-deal
     padding: 12px 15px
-    .deal-banner
-      width: 100%
-      height: 202px
-      padding-top: 26px
-      border-radius: 5px
-      background-color: #dfc391
-      .status
-        text-align: center
-        color: #fff
-        font-size: 15px
-      .loan-amount
-        margin: 14px 0 20px 0
-        text-align: center
-        color: #fff
-        font-size: 42px
-        .icon-money
-          display: inline-block
-          width: 19px
-          height: 25px
-          background-image: url('../../assets/img/icon_money.png')
-          background-size: 19px 25px
-        .decimals
-          font-size: 32px
-    .step
-      .step-progress
-        display: flex
-        .step-content
-          position: relative
-          flex-grow: 1
-          text-align: center
-          font-size: 14px
-          .step-icon
-            width: 40px
-            height: 40px
-            margin: 0 auto
-            background-size: 100% 100%
-            &.icon1
-              background-image: url('../../assets/img/icon_loan_submit_nor.png')
-            &.icon2
-              background-image: url('../../assets/img/icon_loan_handle_nor.png')
-            &.icon3
-              background-image: url('../../assets/img/icon_loan_success_nor.png')
-          .step-desc
-            margin-top: 11px
-            color: #ffe1ab
-          &:before
-            position: absolute
-            content: ''
-            top: 20px
-            left: -30px
-            width: 50%
-            border-top: 4px dotted #ffe1ab
-          &:first-child:before
-            border: none
-          &.active
-            .icon1
-              background-image: url('../../assets/img/icon_loan_submit_show.png')
-            .icon2
-              background-image: url('../../assets/img/icon_loan_handle_show.png')
-            .icon3
-              background-image: url('../../assets/img/icon_loan_success_show.png')
-            .step-desc
-              color: #fff
-            &:before
-              border-top-color: #fff
 
-    .loan-desc
+    /*.loan-desc
       padding-top: 29px
       padding-left: 39px
       .item
@@ -364,5 +318,5 @@
       width: 100%
       height: 45px
       color: #fff
-      background-color: #999
+      background-color: #999*/
 </style>

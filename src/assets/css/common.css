@@ -162,8 +162,6 @@ input:-ms-input-placeholder {      /* IE 10+ */
 .loan-btn .btn {
   display: inline-block;
   width: 100%;
-  padding: 12px 0;
-  text-align: center;
   color: #fff;
   border-radius: 6px;
   background-color: #4e433d;

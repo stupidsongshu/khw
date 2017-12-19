@@ -1,0 +1,85 @@
+.deal-banner
+  width: 100%
+  height: 202px
+  padding-top: 26px
+  border-radius: 5px
+  background-color: #dfc391
+  .status
+    text-align: center
+    color: #fff
+    font-size: 36px
+  .loan-amount
+    margin: 14px 0 20px 0
+    text-align: center
+    color: #fff
+    font-size: 42px
+    .icon-money
+      display: inline-block
+      width: 19px
+      height: 25px
+      background-image: url('../../assets/img/icon_money.png')
+      background-size: 19px 25px
+    .decimals
+      font-size: 32px
+.step
+  margin-top: 30px
+  .step-progress
+    display: flex
+    .step-content
+      position: relative
+      flex-grow: 1
+      text-align: center
+      font-size: 14px
+      .step-icon
+        width: 40px
+        height: 40px
+        margin: 0 auto
+        background-size: 100% 100%
+        &.icon1
+          background-image: url('../../assets/img/icon_loan_submit_nor.png')
+        &.icon2
+          background-image: url('../../assets/img/icon_loan_handle_nor.png')
+        &.icon3
+          background-image: url('../../assets/img/icon_loan_success_nor.png')
+      .step-desc
+        margin-top: 11px
+        color: #ffe1ab
+      &:before
+        position: absolute
+        content: ''
+        top: 20px
+        left: -30px
+        width: 50%
+        border-top: 4px dotted #ffe1ab
+      &:first-child:before
+        border: none
+      &.active
+        .icon1
+          background-image: url('../../assets/img/icon_loan_submit_show.png')
+        .icon2
+          background-image: url('../../assets/img/icon_loan_handle_show.png')
+        .icon3
+          background-image: url('../../assets/img/icon_loan_success_show.png')
+        .step-desc
+          color: #fff
+        &:before
+          border-top-color: #fff
+
+.count-down
+  position: fixed
+  left: 0
+  bottom: 20%
+
+
+.mint-popup
+  width: 100%
+  background-color: transparent
+
+.deal-success
+  text-align: center
+  .deal-success-gif
+    width: 155px
+  .deal-success-txt
+    margin-top: 10px
+    color: #fff
+    font-size: 14px

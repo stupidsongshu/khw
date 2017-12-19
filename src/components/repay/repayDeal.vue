@@ -6,7 +6,37 @@
       </div>-->
     </mt-header>
 
-    <div class="repay-deal-progress">
+
+
+    <div class="deal-banner">
+      <div class="status" v-show="status === 0">提交成功</div>
+      <div class="status" v-show="status === 1">银行处理中</div>
+      <div class="status" v-show="status === 2">还款成功</div>
+
+      <div class="step">
+        <ul class="step-progress">
+          <li class="step-content" :class="{active: status >= 0}">
+            <div class="step-icon icon1"></div>
+            <div class="step-line"></div>
+            <div class="step-desc">提交成功</div>
+          </li>
+          <li class="step-content" :class="{active: status >= 1}">
+            <div class="step-icon icon2"></div>
+            <div class="step-line"></div>
+            <div class="step-desc">银行处理中</div>
+          </li>
+          <li class="step-content" :class="{active: status >= 2}">
+            <div class="step-icon icon3"></div>
+            <div class="step-line"></div>
+            <div class="step-desc">还款成功</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+
+
+    <!--<div class="repay-deal-progress">
       <div class="step">
         <ul class="step-progress">
           <li class="step-content" :class="{active: status >= 0}">
@@ -70,11 +100,22 @@
         <div class="name">需还总额</div>
         <div class="value">{{payOffAmt}}元</div>
       </div>
+    </div>-->
+
+    <div class="loan-btn count-down" v-if="status > 1">
+      <mt-button class="btn">{{restTime}}s后返回</mt-button>
     </div>
 
-    <div v-if="status > 1">
-      {{restTime}}s后返回
-    </div>
+    <mt-popup
+      v-model="popupVisible"
+      popup-transition="popup-fade"
+      :modal="true"
+      :closeOnClickModal="false">
+      <div class="deal-success">
+        <img class="deal-success-gif" src="../../assets/img/deal-success-repay.gif" alt="">
+        <div class="deal-success-txt">您的还款正在处理哦~请耐心等待</div>
+      </div>
+    </mt-popup>
   </div>
 </template>
 
@@ -87,60 +128,62 @@
     // },
     data() {
       return {
+        popupVisible: false,
         // 还款处理状态 0提交成功 1银行处理中 2还款成功 3还款失败
         status: 0,
         // 还款提交成功、处理中时间
-        transTime: '',
+        // transTime: '',
         // 还款成功时间
-        transTimeS: '',
+        // transTimeS: '',
         // 还款总额
-        payOffAmt: 0,
+        // payOffAmt: 0,
         // 还款总额整数部分
-        payOffAmtInt: 0,
+        // payOffAmtInt: 0,
         // 还款总额小数部分
-        payOffAmtFlo: 0,
+        // payOffAmtFlo: 0,
         // 利息
-        intTot: 0,
+        // intTot: 0,
         // 全额结清实际应还违约金（提前还款手续费）
-        realLiquidatedDamages: 0,
+        // realLiquidatedDamages: 0,
         // 是否刷新接口
         isRefresh: true,
         restTime: 5
       }
     },
     created() {
-      let summaryInfo = this.$store.state.common.summaryInfo
-      this.realLiquidatedDamages = summaryInfo.realLiquidatedDamages
+      // let summaryInfo = this.$store.state.common.summaryInfo
+      // this.realLiquidatedDamages = summaryInfo.realLiquidatedDamages
+
       // 单笔用款明细查询
-      let commonParams = this.$store.state.common.commonParams
-      let ua = commonParams.ua
-      let call = 'Loan.cashExtractDetail'
-      let timestamp = new Date().getTime()
-      let sign = this.sign(ua, call, timestamp)
-      let paramString = JSON.stringify({
-        ua: ua,
-        call: call,
-        args: {
-          customerId: commonParams.args.customerId,
-          mobileNo: commonParams.args.mobileNo,
-          token: commonParams.args.token,
-          loanAcctNo: commonParams.args.loanAcctNo
-        },
-        sign: sign,
-        timestamp: timestamp
-      })
-
-      this.$http.post('/khw/c/h', paramString).then(res => {
-        let data = res.data
-        if (data.returnCode === '000000') {
-          let dataS = data.response
-
-          let payOffAmtStr = dataS.payOffAmt.toString()
-          this.payOffAmtInt = payOffAmtStr.substring(0, payOffAmtStr.length - 2)
-          this.payOffAmtFlo = payOffAmtStr.substring(payOffAmtStr.length - 2)
-          this.intTot = data.response.intTot
-        }
-      })
+      // let commonParams = this.$store.state.common.commonParams
+      // let ua = commonParams.ua
+      // let call = 'Loan.cashExtractDetail'
+      // let timestamp = new Date().getTime()
+      // let sign = this.sign(ua, call, timestamp)
+      // let paramString = JSON.stringify({
+      //   ua: ua,
+      //   call: call,
+      //   args: {
+      //     customerId: commonParams.args.customerId,
+      //     mobileNo: commonParams.args.mobileNo,
+      //     token: commonParams.args.token,
+      //     loanAcctNo: commonParams.args.loanAcctNo
+      //   },
+      //   sign: sign,
+      //   timestamp: timestamp
+      // })
+      //
+      // this.$http.post('/khw/c/h', paramString).then(res => {
+      //   let data = res.data
+      //   if (data.returnCode === '000000') {
+      //     let dataS = data.response
+      //
+      //     let payOffAmtStr = dataS.payOffAmt.toString()
+      //     this.payOffAmtInt = payOffAmtStr.substring(0, payOffAmtStr.length - 2)
+      //     this.payOffAmtFlo = payOffAmtStr.substring(payOffAmtStr.length - 2)
+      //     this.intTot = data.response.intTot
+      //   }
+      // })
 
       //
       this.checkRepayDeal()
@@ -190,15 +233,17 @@
         // this.loading()
         this.$http.post('/khw/c/h', paramString).then(res => {
           // this.closeLoading()
+          that.popupVisible = true
           let data = res.data
           if (data.returnCode === '000000') {
             let res = data.response
             console.log(res)
-            this.transTime = res.transTime
+            // this.transTime = res.transTime
             // transStus 0成功 1失败 2处理中 9订单不存在
             if (res.transStus === 0) {
               this.status = 2
-              this.transTimeS = res.transTime
+              this.toast('还款成功')
+              // this.transTimeS = res.transTime
             } else if (res.transStus === 1) {
               this.status = 3
               this.toast('还款失败，请稍后重试')
@@ -210,6 +255,7 @@
 
             // 返回处理结果后
             if (res.transStus !== 2) {
+              that.popupVisible = false
               that.isRefresh = false
               that.updateLoanAcctInfo()
             }
@@ -268,8 +314,11 @@
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
+  @import '../../assets/css/loanReapyDeal.styl'
+
   .repay-deal
-    .repay-deal-progress
+    padding: 12px 15px
+    /*.repay-deal-progress
       width: 100%
       padding: 15px 0
       background-color: #fff
@@ -375,5 +424,5 @@
             margin-left: 4px
             vertical-align: -3px
             background-image: url("../../assets/img/icon_rate.png")
-            background-size: 100% 100%
+            background-size: 100% 100%*/
 </style>

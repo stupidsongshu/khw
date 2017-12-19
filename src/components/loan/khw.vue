@@ -42,7 +42,8 @@
     </div>
 
     <div class="loan-btn">
-      <router-link to="/loan" class="btn">立即借款</router-link>
+      <!--<router-link to="/loan" class="btn">立即借款</router-link>-->
+      <mt-button class="btn" @click="loan">立即借款</mt-button>
     </div>
 
     <div class="footer-txt">"卡还王"由麦广互娱与中银消费金融联合打造</div>
@@ -85,6 +86,9 @@
     methods: {
       selectLoanDuration(time) {
         this.$store.commit('loan_duration_save', time)
+      },
+      loan() {
+        this.$router.push('/loan')
       }
     },
     // created() {

@@ -22,7 +22,7 @@
       </div>
       <div class="item">
         <div class="name">当前利息</div>
-        <div class="value">{{intTot}}元 <span class="calc-rate"></span></div>
+        <div class="value">{{intTot}}元 <router-link to="/rate" class="calc-rate"></router-link></div>
       </div>
       <div class="item">
         <div class="name">还款借记卡</div>
@@ -41,8 +41,8 @@
 
     <ul class="hint">
       <li>特别提示：</li>
-      <li>1,还款日自动还款，请注意还款卡内的余额是否足额；</li>
-      <li>2,扣款一旦成功，不可申请撤诉；</li>
+      <li>1.还款日自动还款，请注意还款卡内的余额是否足额</li>
+      <li>2.扣款一旦成功，不可申请撤诉</li>
     </ul>
 
     <mt-popup
@@ -51,6 +51,9 @@
       position="bottom"
       modal="false"
       closeOnClickModal="false">
+      <div class="loan-plan-nav">
+        <div class="ensure-btn" @click="ensure">确定</div>
+      </div>
 
       <loan-plan :overflowScroll="true" :loanPlanList="loanPlanList"></loan-plan>
     </mt-popup>
@@ -165,12 +168,16 @@
             this.loanPlanList = data.response.list.splice(0, this.realInstalPeriod)
           }
         })
+      },
+      ensure() {
+        this.popupVisible = false
       }
     }
   }
 </script>
 
 <style lang="stylus" rel="stylesheet/stylus">
+  @import '../../assets/css/base.styl'
   @import '../../assets/css/loanRepay.styl'
 
   .loan-plan
@@ -185,4 +192,14 @@
       background-image: url("../../assets/img/icon_plan.png")
       background-size: 100% 100%
 
+  .loan-plan-nav
+    display: flex
+    justify-content: flex-end
+    padding: 5px 15px 5px 0
+    font-size: 14px
+    .ensure-btn
+      padding: 4px
+      color: #fff
+      border-radius: 4px
+      background-color: main-color
 </style>
