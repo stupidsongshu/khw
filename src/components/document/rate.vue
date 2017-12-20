@@ -60,7 +60,7 @@
         </li>
       </ul>
       <div class="color666">逾期后，应还金额为：</div>
-      <h1 class="overdue-total-fee color333">贷款金额+利息(贷款金额*日息*借款天数)+逾期综合费用</h1>
+      <h1 class="overdue-total-fee color333">贷款金额+利息(借款期数*月利率)+逾期综合费用</h1>
     </div>
 
     <div class="">

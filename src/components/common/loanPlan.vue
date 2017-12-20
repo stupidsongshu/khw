@@ -8,7 +8,7 @@
       <div class="plan-detail">详情</div>
       <div class="plan-amount">还款金额</div>
     </div>
-    <div class="plan-item" v-for="loanPlanItem in loanPlanList">
+    <div class="plan-item" v-for="loanPlanItem of loanPlanList">
       <div class="plan-periods">{{loanPlanItem.paymentPeriod}}期</div>
       <div class="plan-detail">
         <div>时间：{{loanPlanItem.prePayDay | date}}</div>

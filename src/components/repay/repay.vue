@@ -123,7 +123,9 @@
         timestamp: timestamp
       })
 
+      this.loading()
       this.$http.post('/khw/c/h', paramString).then(res => {
+        this.closeLoading()
         let data = res.data
         if (data.returnCode === '000000') {
           // 未还本金
@@ -133,6 +135,9 @@
           // 申请时间
           this.transTime = data.response.transTime
         }
+      }).catch(err => {
+        this.closeLoading()
+        console.log(err)
       })
     },
     methods: {

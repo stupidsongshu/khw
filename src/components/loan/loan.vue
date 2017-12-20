@@ -17,10 +17,10 @@
 
     <div class="content-wrapper">
       <div class="loan-purpose-wrapper">
-        <span class="loan-purpose-name">贷款用途：</span>
+        <span class="loan-purpose-name color999">贷款用途：</span>
         <div class="loan-purpose-select" @click="selectPurpose">
           <input type="text" placeholder="请选择" readonly v-model="purpose">
-          <i class="fa fa-angle-right"></i>
+          <i class="fa fa-angle-right color999"></i>
         </div>
       </div>
 
@@ -38,8 +38,11 @@
       <div class="loan-item">
         <span class="name">收款银行：</span>
         <span class="value">
-          {{decardOpenBank}}（尾号{{debitCardNo}}）<router-link to="/rate" class="calc-rate"></router-link>
+          {{openBank}}（尾号{{creditcardNo}}）
         </span>
+        <div class="calc-rate-wrapper">
+          <router-link to="/rate" class="calc-rate"></router-link>
+        </div>
       </div>
 
       <div class="loan-code">
@@ -67,7 +70,7 @@
       <div class="loan-item">
         <div class="agreement-wrapper">
           <input type="checkbox" id="agreementInput" :checked="checked" @click="toggleAgree">
-          <label for="agreementInput">我同意并知晓</label><router-link class="agreement" to="">《借款补充协议》</router-link>
+          <label class="agreement-label" for="agreementInput">我同意并知晓</label><router-link class="agreement" to="">《借款补充协议》</router-link>
         </div>
       </div>
     </div>
@@ -100,6 +103,9 @@
   import loanPlan from './../common/loanPlan'
 
   export default {
+    components: {
+      loanPlan
+    },
     data() {
       return {
         popupVisible: false,
@@ -110,8 +116,8 @@
           className: 'slot'
         }],
         dayRate: 0,
-        decardOpenBank: '',
-        debitCardNo: '',
+        openBank: '',
+        creditcardNo: '',
         vcode: '',
         loanUseId: '',
         hasGetCode: false,
@@ -129,47 +135,6 @@
       }
     },
     created() {
-      // let that = this
-      let summaryInfo = this.$store.state.common.summaryInfo
-      this.decardOpenBank = summaryInfo.decardOpenBank
-      this.debitCardNo = summaryInfo.debitCardNo.substring(summaryInfo.debitCardNo.length - 4)
-
-      // 还款试算
-      // let commonParams = this.$store.state.common.commonParams
-      // let ua = commonParams.ua
-      // let call = 'Loan.repayPlan'
-      // let timestamp = new Date().getTime()
-      // let sign = this.sign(ua, call, timestamp)
-      // let paramString = JSON.stringify({
-      //   ua: ua,
-      //   call: call,
-      //   args: {
-      //     customerId: commonParams.args.customerId,
-      //     mobileNo: commonParams.args.mobileNo,
-      //     token: commonParams.args.token,
-      //     acctNo: commonParams.args.loanAcctNo,
-      //     queryBegNum: 1,
-      //     queryCnt: this.$store.state.loan.loan_duration,
-      //     dealFlg: 'A',
-      //     paymentAmount: this.$store.state.loan.loan_limit,
-      //     installPeriod: this.$store.state.loan.loan_duration,
-      //     paygateOrderId: ''
-      //   },
-      //   sign: sign,
-      //   timestamp: timestamp
-      // })
-      // this.$http.post('/khw/c/h', paramString).then(res => {
-      //   let data = res.data
-      //   if (data.returnCode === '000000') {
-      //     let dataS = data.response
-      //     that.loanPlanList = dataS.list.splice(0, that.loanDuration)
-      //   } else {
-      //     that.toast(data.returnMsg)
-      //   }
-      // }).catch(err => {
-      //   that.toast(err.returnMsg)
-      // })
-
       // 本金
       let loanLimit = this.loanLimit
       // 分期数
@@ -247,6 +212,40 @@
           preAmt: prePrin + preInt
         })
       }
+
+      // 收款银行
+      let that = this
+      let commonParams = this.$store.state.common.commonParams
+      let ua = commonParams.ua
+      let call = 'Loan.creditCard'
+      let timestamp = new Date().getTime()
+      let sign = this.sign(ua, call, timestamp)
+      let paramString = JSON.stringify({
+        ua: ua,
+        call: call,
+        args: {
+          customerId: commonParams.args.customerId,
+          mobileNo: commonParams.args.mobileNo,
+          token: commonParams.args.token,
+          loanAcctNo: commonParams.args.loanAcctNo
+        },
+        sign: sign,
+        timestamp: timestamp
+      })
+      this.loading()
+      this.$http.post('/khw/c/h', paramString).then(res => {
+        that.closeLoading()
+        let data = res.data
+        if (data.returnCode === '000000') {
+          let dataS = data.response
+          if (dataS.creditcardNo) {
+            this.creditcardNo = dataS.creditcardNo.substring(dataS.creditcardNo.length - 4)
+          }
+          this.openBank = dataS.openBank
+        }
+      }).catch(err => {
+        that.toast(err.returnMsg)
+      })
     },
     methods: {
       toggleAgree() {
@@ -450,15 +449,26 @@
           that.toast(err.returnMsg)
         })
       }
-    },
-    components: {
-      loanPlan
     }
   }
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
   @import '../../assets/css/base.styl'
+
+  #agreementInput
+    display: none
+  .agreement-label:before
+    content: ''
+    display: inline-block
+    position: relative
+    top: 1px
+    margin-right: 4px
+    width: 12px
+    height: 12px
+    border: 1px solid #ccc
+  #agreementInput:checked + .agreement-label:before
+    background: url('../../assets/img/icon_checked.png') no-repeat center / 12px 12px
 
   .loan
     .banner-wrapper
@@ -502,14 +512,15 @@
       background-color: #fff
       .loan-purpose-wrapper
         display: flex
-        align-items: center
         height: 54px
         padding: 0 15px
         border-bottom: 1px solid #e3e3e3
         .loan-purpose-name
           flex-basis: 80px
           width: 80px
-          color: color333
+          display: flex
+          align-items: center
+          padding-top: 2px // fix 相对右边偏高
         .loan-purpose-select
           flex: 1
           display: flex
@@ -525,7 +536,6 @@
           i
             flex-grow: 1
             text-align: right
-            color: color999
             font-size: 30px
 
       .loan-item
@@ -545,6 +555,17 @@
           color: #999
         .value
           color: #333
+        .calc-rate-wrapper
+          flex: 1
+          text-align: center
+          .calc-rate
+            display: inline-block
+            width: 14px
+            height: 16px
+            margin-left: 4px
+            vertical-align: -3px
+            background-image: url("../../assets/img/icon_rate.png")
+            background-size: 100% 100%
         .agreement-wrapper
           font-size: 13px
           input
@@ -554,6 +575,7 @@
             border: 1px solid main-color
           .agreement
             color: main-color
+
       .loan-code
         display: flex
         padding: 0 15px
@@ -563,9 +585,10 @@
           width: 80px
           color: #999
         .code-input
-          flex: 1
+          flex: 2
           border: none
         .code-btn
+          flex: 1
           padding-left: 6px
           white-space: nowrap
           font-size: 13px
@@ -583,13 +606,4 @@
       justify-content: space-between
       padding: 5px 15px
       font-size: 14px
-
-  .calc-rate
-    display: inline-block
-    width: 14px
-    height: 16px
-    margin-left: 4px
-    vertical-align: -3px
-    background-image: url("../../assets/img/icon_rate.png")
-    background-size: 100% 100%
 </style>

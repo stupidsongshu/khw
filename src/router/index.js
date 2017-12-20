@@ -71,8 +71,9 @@ const routes = [
     //   keepAlive: true
     // },
     // beforeEnter: (to, from, next) => {
+    //   alert(1)
     //   next()
-    // }
+    // },
     redirect: '/khw'
   },
   {
@@ -119,7 +120,11 @@ const routes = [
   {
     path: '/khw',
     name: 'khw',
-    component: Khw
+    component: Khw,
+    beforeEnter: (to, from, next) => {
+      console.log(this)
+      next()
+    }
   },
   {
     path: '/loan',

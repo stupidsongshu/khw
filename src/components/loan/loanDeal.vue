@@ -64,7 +64,7 @@
       :closeOnClickModal="false">
       <div class="deal-success">
         <img class="deal-success-gif" src="../../assets/img/deal-success-loan.gif" alt="">
-        <div class="deal-success-txt">您的钱款正在处理哦~请耐心等待</div>
+        <div class="deal-success-txt">您的借款正在处理哦~请耐心等待</div>
       </div>
     </mt-popup>
   </div>

@@ -64,9 +64,8 @@
         realLiquidatedDamages: 0
       }
     },
-    created() {
+    mounted() {
       let summaryInfo = this.$store.state.common.summaryInfo
-      console.log(summaryInfo)
       this.debitCardNo = summaryInfo.debitCardNo.substring(summaryInfo.debitCardNo.length - 4)
       this.decardOpenBank = summaryInfo.decardOpenBank
       this.realLiquidatedDamages = summaryInfo.realLiquidatedDamages
@@ -93,13 +92,18 @@
         timestamp: timestamp
       })
 
+      this.loading()
       this.$http.post('/khw/c/h', paramString).then(res => {
+        this.closeLoading()
         let data = res.data
         if (data.returnCode === '000000') {
           this.transTime = data.response.transTime
           this.payAmt = data.response.payAmt
           this.intTot = data.response.intTot
         }
+      }).catch(err => {
+        this.closeLoading()
+        console.log(err)
       })
     },
     methods: {

@@ -185,7 +185,6 @@
       //   }
       // })
 
-      //
       this.checkRepayDeal()
 
       let that = this
