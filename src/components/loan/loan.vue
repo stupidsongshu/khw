@@ -37,7 +37,7 @@
 
       <div class="loan-item">
         <span class="name">收款银行：</span>
-        <span class="value">
+        <span class="value" v-if="openBank">
           {{openBank}}（尾号{{creditcardNo}}）
         </span>
         <div class="calc-rate-wrapper">
@@ -70,7 +70,7 @@
       <div class="loan-item">
         <div class="agreement-wrapper">
           <input type="checkbox" id="agreementInput" :checked="checked" @click="toggleAgree">
-          <label class="agreement-label" for="agreementInput">我同意并知晓</label><router-link class="agreement" to="">《借款补充协议》</router-link>
+          <label class="agreement-label" for="agreementInput">我同意并知晓</label><a class="agreement" href="http://www.kahuanwang.com/agreement/loan.html">《借款协议》</a>
         </div>
       </div>
     </div>
@@ -90,10 +90,10 @@
       closeOnClickModal="false"
       id="loanPlanPopup">
       <div class="picker-nav">
-        <div>请选择用途</div>
-        <div @click="ensure">确定</div>
+        <div class="picker-btn picker-btn-l color999">请选择用途</div>
+        <div class="picker-btn picker-btn-r" @click="ensure">确定</div>
       </div>
-      <mt-picker :slots="loanPurposeSlot" @change="onChange" :visible-item-count="5" value-key="loanPurpose"></mt-picker>
+      <mt-picker :slots="loanPurposeSlot" @change="onChange" value-key="loanPurpose" :visible-item-count="5" :item-height="40"></mt-picker>
     </mt-popup>
 
   </div>
@@ -112,7 +112,12 @@
         purpose: '',
         loanPurposeSlot: [{
           flex: 1,
-          values: [],
+          values: [
+            {
+              id: '0',
+              loanPurpose: ' '
+            }
+          ],
           className: 'slot'
         }],
         dayRate: 0,
@@ -606,4 +611,18 @@
       justify-content: space-between
       padding: 5px 15px
       font-size: 14px
+      .picker-btn
+        line-height: 25px
+        text-align: center
+        &.picker-btn-r
+          width: 56px
+          height: 25px
+          border-radius: 4px
+          color: #fff
+          font-size: 12px
+          background-color: main-color
+</style>
+<style lang="stylus" rel="stylesheet/stylus">
+  .picker-item
+    color: #ccc
 </style>

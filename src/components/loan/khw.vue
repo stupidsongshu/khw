@@ -48,24 +48,20 @@
 
     <div class="footer-txt">"卡还王"由麦广互娱与中银消费金融联合打造</div>
 
-    <!--<mt-tabbar fixed>
+    <mt-tabbar fixed v-if="deviceType === 'android'">
       <mt-tab-item id="loan">
-        <router-link to="/khw">
-          <div class="self-tab-item">
-            <img slot="icon" src="../../assets/img/bottom_icon_01_click.png">
-            <span class="isSelected">借款</span>
-          </div>
-        </router-link>
+        <div class="self-tab-item">
+          <img slot="icon" src="../../assets/img/bottom_icon_01_click.png">
+          <span class="isSelected">借款</span>
+        </div>
       </mt-tab-item>
       <mt-tab-item id="my">
-        <router-link to="">
-          <div class="self-tab-item">
-            <img slot="icon" src="../../assets/img/bottom_icon_03_nor.png">
-            <span>我的</span>
-          </div>
-        </router-link>
+        <div class="self-tab-item">
+          <img slot="icon" src="../../assets/img/bottom_icon_03_nor.png">
+          <span>我的</span>
+        </div>
       </mt-tab-item>
-    </mt-tabbar>-->
+    </mt-tabbar>
   </div>
 </template>
 
@@ -77,7 +73,6 @@
     data() {
       return {
         loanMin: 1000
-        // loanMax: 0
       }
     },
     components: {
@@ -91,10 +86,11 @@
         this.$router.push('/loan')
       }
     },
-    // created() {
-    //   this.loanMax = this.$store.state.loan.loan_max / 100
-    // },
     computed: {
+      // 设备类型
+      deviceType() {
+        return this.$store.state.common.deviceType
+      },
       // 最大额度
       loanMax() {
         return this.$store.state.loan.loan_max / 100
@@ -103,12 +99,10 @@
       loanLimit: {
         // getter
         get: function() {
-          // return this.$store.state.loan.loan_max / 100 / 2
           return this.$store.state.loan.loan_limit / 100
         },
         // setter
         set: function(newValue) {
-          // console.log(newValue)
           this.$store.commit('loan_limit_save', newValue * 100)
         }
       },
@@ -118,12 +112,10 @@
       activeTabIndex() {
         return this.$store.state.common.activeTabIndex
       }
+    },
+    beforeRouteEnter(to, from, next) {
+      next(vm => {})
     }
-    // watch: {
-    //   loanLimit(newValue, oldValue) {
-    //     this.$store.commit('loan_limit_save', newValue * 100)
-    //   }
-    // }
   }
 </script>
 
@@ -178,7 +170,6 @@
         border-radius: 10px
         background: url("../../assets/img/card.png") no-repeat
         background-size: 100% 200px
-        /*box-shadow: 2px 0 12px #e5e3e2,-2px 0 12px #e5e3e2*/
         .loan-amount
           display: table-cell
           vertical-align: middle
@@ -225,4 +216,25 @@
     text-align: center
     color: #999
     font-size: 12px
+
+  .mint-tabbar
+    height: 54px
+    color: #d2d1d1
+    background-color: #fff !important
+    background-image: none
+    border-top: 1px solid #d9d9d9
+    .mint-tab-item
+      &.is-selected
+        color: #d2d1d1
+        background-color: #fff !important
+    .self-tab-item
+      display: flex
+      flex-direction: column
+      color: #d2d1d1
+      .isSelected
+        color: #daab5b !important
+      img
+        width: 24px
+        height: 24px
+        margin: 0 auto 5px auto
 </style>

@@ -62,6 +62,17 @@ img {
   outline: none;
 }
 
+input, textarea, [contenteditable] {
+  color: #daab5b;
+  text-shadow: 0px 0px 0px #495057;
+  -webkit-text-fill-color: transparent;
+}
+/*@supports (caret-color: #daab5b) {
+  input, textarea, [contenteditable] {
+    caret-color: #daab5b;
+  }
+}*/
+
 input::-webkit-input-placeholder { /* WebKit */
   color: #999;
 }

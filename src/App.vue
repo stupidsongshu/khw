@@ -1,10 +1,9 @@
 <template>
-  <div id="app" :class="{'has-footer': footer}">
-  <!--<div id="app">-->
+  <!--<div id="app" :class="{'has-footer': footer}">-->
+  <div id="app">
     <transition :name="transitionName" mode="out-in">
       <router-view class="child-view"></router-view>
     </transition>
-
     <!--<transition-gruop :name="transitionName" mode="out-in">
       <keep-alive>
         <router-view v-if="$route.meta.keepAlive" v-on:checkApplyStatus="applyStatus"></router-view>
@@ -12,14 +11,14 @@
       <router-view v-if="!$route.meta.keepAlive" v-on:checkApplyStatus="applyStatus"></router-view>
     </transition-gruop>-->
 
-    <tab-bar :hasFooter="footer"></tab-bar>
+    <!--<tab-bar :hasFooter="footer"></tab-bar>-->
   </div>
 </template>
 
 <script>
   // import { MessageBox } from 'mint-ui'
   // import { Toast } from 'mint-ui'
-  import tabBar from './components/common/tabbar.vue'
+  // import tabBar from './components/common/tabbar.vue'
 
   export default {
     name: 'app',
@@ -28,9 +27,9 @@
         transitionName: 'slide-left'
       }
     },
-    components: {
-      'tab-bar': tabBar
-    },
+    // components: {
+    //   'tab-bar': tabBar
+    // },
     computed: {
       footer() {
         return this.$store.state.common.hasFooter
@@ -39,7 +38,8 @@
     // dynamically set transition based on route change
     watch: {
       '$route'(to, from) {
-        let toPath = to.path
+        // let toPath = to.path
+
         // const toDepth = to.path.split('/').length
         // const fromDepth = from.path.split('/').length
         // this.transitionName = toDepth < fromDepth ? 'slide-right' : 'slide-left'
@@ -47,13 +47,13 @@
         /**
          * fix 点击设备物理返回键 tabBar 显示
          */
-        if (toPath === '/') {
-          this.$store.commit('tabBarActiveIndexSave', 0)
-        } else if (toPath === '/repay') {
-          this.$store.commit('tabBarActiveIndexSave', 1)
-        } else if (toPath === '/my') {
-          this.$store.commit('tabBarActiveIndexSave', 2)
-        }
+        // if (toPath === '/') {
+        //   this.$store.commit('tabBarActiveIndexSave', 0)
+        // } else if (toPath === '/repay') {
+        //   this.$store.commit('tabBarActiveIndexSave', 1)
+        // } else if (toPath === '/my') {
+        //   this.$store.commit('tabBarActiveIndexSave', 2)
+        // }
 
         /**
          * 需登录的路由配置

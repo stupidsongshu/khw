@@ -58,24 +58,20 @@
     </div>
 
 
-    <!--<mt-tabbar fixed>
-      <mt-tab-item id="loan">
-        <router-link to="/repay">
-          <div class="self-tab-item">
-            <img slot="icon" src="../../assets/img/bottom_icon_02_click.png">
-            <span class="isSelected">还款</span>
-          </div>
-        </router-link>
+    <mt-tabbar fixed v-if="deviceType === 'android'">
+      <mt-tab-item>
+        <div class="self-tab-item">
+          <img slot="icon" src="../../assets/img/bottom_icon_02_click.png">
+          <span class="isSelected">还款</span>
+        </div>
       </mt-tab-item>
-      <mt-tab-item id="my">
-        <router-link to="">
-          <div class="self-tab-item">
-            <img slot="icon" src="../../assets/img/bottom_icon_03_nor.png">
-            <span>我的</span>
-          </div>
-        </router-link>
+      <mt-tab-item>
+        <div class="self-tab-item">
+          <img slot="icon" src="../../assets/img/bottom_icon_03_nor.png">
+          <span>我的</span>
+        </div>
       </mt-tab-item>
-    </mt-tabbar>-->
+    </mt-tabbar>
   </div>
 </template>
 
@@ -92,6 +88,12 @@
         remainAmtInt: 0,
         // 未还本金小数部分
         remainAmtFlo: 0
+      }
+    },
+    computed: {
+      // 设备类型
+      deviceType() {
+        return this.$store.state.common.deviceType
       }
     },
     created() {
@@ -242,4 +244,25 @@
         margin-top: 21px
         color: #999
         font-size: 15px
+
+    .mint-tabbar
+      height: 54px
+      color: #d2d1d1
+      background-color: #fff !important
+      background-image: none
+      border-top: 1px solid #d9d9d9
+      .mint-tab-item
+        &.is-selected
+          color: #d2d1d1
+          background-color: #fff !important
+      .self-tab-item
+        display: flex
+        flex-direction: column
+        color: #d2d1d1
+        .isSelected
+          color: #daab5b !important
+        img
+          width: 24px
+          height: 24px
+          margin: 0 auto 5px auto
 </style>

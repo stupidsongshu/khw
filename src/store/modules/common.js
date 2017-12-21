@@ -1,4 +1,8 @@
 const state = {
+  /*
+   * 设备类型
+  */
+  deviceType: '',
   /**
    * 底部tabbar
    * hasFooter: 显示隐藏
@@ -48,6 +52,9 @@ const state = {
 const getters = {}
 
 const mutations = {
+  deviceTypeSave(state, payload) {
+    state.deviceType = payload
+  },
   hasFooterSave(state, payload) {
     state.hasFooter = payload
   },

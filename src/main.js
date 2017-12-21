@@ -14,6 +14,10 @@ import './assets/css/common.css'
 import './assets/css/base.styl'
 import './assets/font-awesome-4.7.0/css/font-awesome.min.css'
 
+/* eslint-disable no-unused-vars */
+// var VConsole = require('vconsole/dist/vconsole.min')
+// var vConsole = new VConsole()
+
 Vue.config.productionTip = false
 Vue.use(MintUI)
 Vue.prototype.$http = axios
@@ -303,7 +307,7 @@ Vue.prototype.checkSummaryInfo = function() {
     return
   }
 
-  this.$router.push('/khw')
+  this.$router.push('/')
 }
 
 Vue.prototype.appInit = function() {
@@ -344,6 +348,7 @@ Vue.prototype.appInit = function() {
         timestamp: timestamp
       })
 
+      that.loading()
       that.$http.post('/khw/c/h', paramString).then(res => {
         that.closeLoading()
         let data = res.data
