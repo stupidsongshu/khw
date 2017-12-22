@@ -13,7 +13,7 @@
       <div class="plan-detail">
         <div>时间：{{loanPlanItem.prePayDay | date}}</div>
         <div>本金：{{(loanPlanItem.prePrin / 100).toFixed(2)}}</div>
-        <div>利息：{{(loanPlanItem.preInt / 100).toFixed(2)}}</div>
+        <div>月利率费：{{(loanPlanItem.preInt / 100).toFixed(2)}}</div>
       </div>
       <div class="plan-amount">{{(loanPlanItem.preAmt / 100).toFixed(2)}}</div>
     </div>

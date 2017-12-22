@@ -77,10 +77,6 @@
         popupVisible: false,
         // 借款处理状态 0提交成功 1银行处理中 2借款成功 3借款失败
         status: 0,
-        // 借款提交成功、处理中时间
-        // transTime: '',
-        // 借款成功时间
-        // transTimeS: '',
         // 借款额度
         // payAmt: 0,
         // 借款额度整数部分
@@ -193,11 +189,9 @@
           let data = res.data
           if (data.returnCode === '000000') {
             let res = data.response
-            console.log(res)
             // transStus 0成功 1失败 2处理中 9订单不存在
             if (res.transStus === 0) {
               this.status = 2
-              // this.transTimeS = res.transTime
               this.toast('借款成功')
             } else if (res.transStus === 1) {
               this.status = 3
@@ -215,6 +209,9 @@
               that.isRefresh = false
               that.updateLoanAcctInfo()
             }
+          } else {
+            that.popupVisible = false
+            that.toast(data.returnMsg, 1000)
           }
         })
       },
@@ -244,7 +241,7 @@
           let data = res.data
           if (data.returnCode === '000000') {
             let loanAcctInfo = data.response
-            // 缓存汇总信息
+            // 更新汇总信息
             that.$store.commit('summaryInfoSave', loanAcctInfo)
             // 5秒倒计时
             let timer = setInterval(function() {
@@ -256,13 +253,11 @@
               }
             }, 1000)
           } else {
-            // Toast({
-            //   message: data.returnMsg,
-            //   duration: 3000
-            // })
+            that.toast(data.returnMsg)
           }
-        }).catch(error => {
-          console.log(error)
+        }).catch(err => {
+          console.log(err)
+          that.toast(err.data.returnMsg)
         })
       }
     }

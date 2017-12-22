@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import store from './../store'
+// import store from './../store'
 // 首页
 // import Home from '@/components/home'
 // 登录注册
@@ -343,12 +343,14 @@ router.beforeEach((to, from, next) => {
   //   store.commit('hasFooterSave', false)
   // }
 
-  let ua = window.navigator.userAgent
-  if (/iphone/gi.test(ua)) {
-    store.commit('deviceTypeSave', 'iphone')
-  } else if (/android/gi.test(ua)) {
-    store.commit('deviceTypeSave', 'android')
-  }
+  // let ua = window.navigator.userAgent
+  // if (/iphone/gi.test(ua)) {
+  //   alert('iphone')
+  //   store.commit('deviceTypeSave', 'iphone')
+  // } else if (/android/gi.test(ua)) {
+  //   alert('android')
+  //   store.commit('deviceTypeSave', 'android')
+  // }
   next()
 })
 // router.afterEach((to, from, next) => {

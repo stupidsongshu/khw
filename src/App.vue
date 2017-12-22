@@ -32,7 +32,8 @@
     // },
     computed: {
       footer() {
-        return this.$store.state.common.hasFooter
+        // return this.$store.state.common.hasFooter
+        // return this.$store.state.common.deviceType === 'android'
       }
     },
     // dynamically set transition based on route change

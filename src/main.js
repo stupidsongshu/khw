@@ -15,8 +15,8 @@ import './assets/css/base.styl'
 import './assets/font-awesome-4.7.0/css/font-awesome.min.css'
 
 /* eslint-disable no-unused-vars */
-// var VConsole = require('vconsole/dist/vconsole.min')
-// var vConsole = new VConsole()
+var VConsole = require('vconsole/dist/vconsole.min')
+var vConsole = new VConsole()
 
 Vue.config.productionTip = false
 Vue.use(MintUI)
@@ -28,6 +28,22 @@ Vue.prototype.goHome = function() {
 
 /* eslint-disable no-undef */
 Vue.prototype.app = app
+/**
+ * 检测设备类型
+ */
+// console.log(app.system())
+
+let ua = window.navigator.userAgent
+if (/iphone/gi.test(ua)) {
+  // alert('iphone')
+  console.log('iphone')
+  store.commit('deviceTypeSave', 'iphone')
+} else if (/android/gi.test(ua)) {
+  // alert('android')
+  console.log('android')
+  store.commit('deviceTypeSave', 'android')
+}
+
 /**
  * 检查申请资格认证状态并存储
  * @return false未通过
@@ -95,7 +111,7 @@ Vue.prototype.toast = function(message, duration) {
     message = ''
   }
   if (!duration) {
-    duration = 3000
+    duration = 1000
   }
   Toast({
     message: message,
@@ -110,16 +126,13 @@ Vue.prototype.onlyNumber = function(val) {
   return true
 }
 
-window.addEventListener('resize', function() {
-  // alert(1)
-  if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
-    // alert(2)
-    window.setTimeout(function() {
-      // alert(3)
-      document.activeElement.scrollIntoViewIfNeeded()
-    }, 0)
-  }
-})
+// window.addEventListener('resize', function() {
+//   if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+//     window.setTimeout(function() {
+//       document.activeElement.scrollIntoViewIfNeeded()
+//     }, 0)
+//   }
+// })
 
 // 用户申请状态
 Vue.prototype.applystatus = function() {
@@ -268,6 +281,9 @@ Vue.prototype.sign = function(ua, call, timestamp) {
   let sign = md5(ua + '&' + call + '&' + timestamp + '&' + signKey)
   return sign
 }
+Vue.prototype.getSign = function(call, timestamp) {
+  return app.sign(call, timestamp)
+}
 
 Vue.prototype.checkSummaryInfo = function() {
   /**
@@ -311,7 +327,6 @@ Vue.prototype.checkSummaryInfo = function() {
 }
 
 Vue.prototype.appInit = function() {
-  /* eslint-disable no-unreachable */
   let that = this
   this.loading()
   this.$http.post('/khw/c/l?mobileNo=13786868686').then(res => {
@@ -360,15 +375,14 @@ Vue.prototype.appInit = function() {
           that.$store.commit('summaryInfoSave', loanAcctInfo)
           that.checkSummaryInfo()
         } else {
-          Toast({
-            message: data.returnMsg,
-            duration: 3000
-          })
+          that.toast(data.returnMsg)
         }
       }).catch(error => {
         that.closeLoading()
         console.log(error)
       })
+    } else {
+      that.toast(res.data.returnMsg)
     }
   }).catch(err => {
     that.closeLoading()
@@ -376,6 +390,57 @@ Vue.prototype.appInit = function() {
   })
 }
 
+Vue.prototype.init = function() {
+  let that = this
+
+  let userData = app.userData()
+  if (typeof userData === 'string') {
+    userData = JSON.parse(userData)
+    console.log(userData)
+  }
+  store.commit('commonParamsSave', {
+    ua: 'KHW_H5_SIGN',
+    args: userData
+  })
+
+  // 账户汇总信息查询
+  let commonParams = that.$store.state.common.commonParams
+  let ua = commonParams.ua
+  let call = 'Loan.loanAcctInfo'
+  let timestamp = new Date().getTime()
+  let sign = that.sign(ua, call, timestamp)
+  let paramString = JSON.stringify({
+    ua: ua,
+    call: call,
+    args: {
+      customerId: commonParams.args.customerId,
+      mobileNo: commonParams.args.mobileNo,
+      token: commonParams.args.token,
+      loanAcctNo: commonParams.args.loanAcctNo
+    },
+    sign: sign,
+    timestamp: timestamp
+  })
+
+  that.loading()
+  that.$http.post('/khw/c/h', paramString).then(res => {
+    that.closeLoading()
+    let data = res.data
+    if (data.returnCode === '000000') {
+      let loanAcctInfo = data.response
+      that.$store.commit('loan_max_save', loanAcctInfo.baseTotCreLine)
+      // that.$store.dispatch('loan_max_actions_save', loanAcctInfo.baseTotCreLine)
+      // 缓存汇总信息
+      that.$store.commit('summaryInfoSave', loanAcctInfo)
+      that.checkSummaryInfo()
+    } else {
+      that.toast(data.returnMsg)
+    }
+  }).catch(error => {
+    that.closeLoading()
+    console.log(error)
+  })
+}
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
@@ -386,6 +451,7 @@ new Vue({
   created() {
     axios.defaults.baseURL = 'http://xfjr.ledaikuan.cn:9191'
     // axios.defaults.baseURL = 'http://114.80.124.254:9191'
+
     // axios.defaults.transformRequest = [function(data) {
     //   if (data) {
     //     data = JSON.stringify(data)
@@ -412,7 +478,8 @@ new Vue({
       return Promise.reject(error)
     })
 
-    this.appInit()
+    // this.appInit()
+    this.init()
   }
 })
 

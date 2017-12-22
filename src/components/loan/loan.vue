@@ -70,7 +70,7 @@
       <div class="loan-item">
         <div class="agreement-wrapper">
           <input type="checkbox" id="agreementInput" :checked="checked" @click="toggleAgree">
-          <label class="agreement-label" for="agreementInput">我同意并知晓</label><a class="agreement" href="http://www.kahuanwang.com/agreement/loan.html">《借款协议》</a>
+          <label class="agreement-label" for="agreementInput">我同意并知晓</label><a class="agreement" href="newtab:http://www.kahuanwang.com/agreement/loan.html">《借款协议》</a>
         </div>
       </div>
     </div>
@@ -112,14 +112,10 @@
         purpose: '',
         loanPurposeSlot: [{
           flex: 1,
-          values: [
-            {
-              id: '0',
-              loanPurpose: ' '
-            }
-          ],
+          values: [],
           className: 'slot'
         }],
+        loanPurposeValues: [],
         dayRate: 0,
         openBank: '',
         creditcardNo: '',
@@ -218,6 +214,59 @@
         })
       }
 
+      // 借款用途随机排序
+      this.loanPurposeValues = [
+        {
+          id: '1',
+          loanPurpose: '装修'
+        },
+        {
+          id: '2',
+          loanPurpose: '婚庆'
+        },
+        {
+          id: '3',
+          loanPurpose: '旅游'
+        },
+        {
+          id: '4',
+          loanPurpose: '教育'
+        },
+        {
+          id: '5',
+          loanPurpose: '租房'
+        },
+        {
+          id: '6',
+          loanPurpose: '汽车周边'
+        },
+        {
+          id: '7',
+          loanPurpose: '电子数码产品'
+        },
+        {
+          id: '8',
+          loanPurpose: '医疗'
+        },
+        {
+          id: 'A',
+          loanPurpose: '家用电器'
+        },
+        {
+          id: 'B',
+          loanPurpose: '家具家居'
+        }
+      ]
+      function randomSort() {
+        return Math.random() > 0.5 ? -1 : 1
+      }
+      this.loanPurposeValues.sort(randomSort)
+      this.loanPurposeValues.unshift({
+        id: '0',
+        loanPurpose: ' '
+      })
+      this.loanPurposeSlot[0].values = this.loanPurposeValues
+
       // 收款银行
       let that = this
       let commonParams = this.$store.state.common.commonParams
@@ -225,6 +274,9 @@
       let call = 'Loan.creditCard'
       let timestamp = new Date().getTime()
       let sign = this.sign(ua, call, timestamp)
+      let getSign = this.getSign(call, timestamp)
+      console.log('sign:' + sign)
+      console.log('getSign:' + getSign)
       let paramString = JSON.stringify({
         ua: ua,
         call: call,
@@ -301,53 +353,12 @@
           event.preventDefault()
         }, false)
 
-        // fix 不打开popup默认无值,打开后必须选值
-        this.loanPurposeSlot[0].values = [
-          // {
-          //   id: '0',
-          //   loanPurpose: ' '
-          // },
-          {
-            id: '1',
-            loanPurpose: '装修'
-          },
-          {
-            id: '2',
-            loanPurpose: '婚庆'
-          },
-          {
-            id: '3',
-            loanPurpose: '旅游'
-          },
-          {
-            id: '4',
-            loanPurpose: '教育'
-          },
-          {
-            id: '5',
-            loanPurpose: '租房'
-          },
-          {
-            id: '6',
-            loanPurpose: '汽车周边'
-          },
-          {
-            id: '7',
-            loanPurpose: '电子数码产品'
-          },
-          {
-            id: '8',
-            loanPurpose: '医疗'
-          },
-          {
-            id: 'A',
-            loanPurpose: '家用电器'
-          },
-          {
-            id: 'B',
-            loanPurpose: '家具家居'
-          }
-        ]
+        // fix 不打开popup借款用途默认无值,打开后必须选值
+        if (this.loanPurposeValues.length > 10) {
+          // delete the first blank value
+          this.loanPurposeValues.shift()
+          this.loanPurposeSlot[0].values = this.loanPurposeValues
+        }
       },
       ensure() {
         this.popupVisible = false
@@ -366,7 +377,6 @@
       // 获取验证码
       getCode() {
         let that = this
-        this.loading()
 
         let commonParams = this.$store.state.common.commonParams
         let ua = commonParams.ua
@@ -385,9 +395,10 @@
           sign: sign,
           timestamp: timestamp
         })
+
+        this.loading()
         this.$http.post('/khw/c/h', paramString).then(res => {
           that.closeLoading()
-          that.toast(res.data.returnMsg)
           if (res.data.response === '000000') {
             that.hasGetCode = true
             let timer = setInterval(() => {
@@ -398,6 +409,8 @@
                 clearInterval(timer)
               }
             }, 1000)
+          } else {
+            that.toast(res.data.returnMsg)
           }
         }).catch(err => {
           that.closeLoading()
@@ -438,20 +451,24 @@
           sign: sign,
           timestamp: timestamp
         })
+
+        this.loading()
         this.$http.post('/khw/c/h', paramString).then(res => {
           that.closeLoading()
-          that.toast(res.data.returnMsg)
           let data = res.data
-          console.log(data)
           if (data.returnCode === '000000') {
-            console.log(data.response)
-            // 更新缓存
-            that.$store.commit('summaryInfoSave', data.response.loanAcctInfo)
-            that.$store.commit('cashExtractSave', data.response.cashExtract)
+            let dataS = data.response
+            // 更新汇总信息
+            that.$store.commit('summaryInfoSave', dataS.loanAcctInfo)
+            that.$store.commit('cashExtractSave', dataS.cashExtract)
             that.checkSummaryInfo()
+          } else {
+            that.toast(data.returnMsg)
           }
         }).catch(err => {
-          that.toast(err.returnMsg)
+          that.closeLoading()
+          console.log(err)
+          that.toast(err.data.returnMsg)
         })
       }
     }
@@ -519,7 +536,7 @@
         display: flex
         height: 54px
         padding: 0 15px
-        border-bottom: 1px solid #e3e3e3
+        border-bottom: 1px solid #e3e3e3 /*no*/
         .loan-purpose-name
           flex-basis: 80px
           width: 80px

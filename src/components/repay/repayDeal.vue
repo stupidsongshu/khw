@@ -201,10 +201,9 @@
         this.goback()
       },
       checkRepayDeal() {
-        let that = this
-
         let cashRepay = this.$store.state.common.cashRepay
-        // console.log(cashRepay.amount, cashRepay.merchantOrderId)
+        console.log(cashRepay.amount, cashRepay.merchantOrderId)
+
         let commonParams = this.$store.state.common.commonParams
         let ua = commonParams.ua
         let call = 'Loan.singleTrans'
@@ -232,7 +231,7 @@
         // this.loading()
         this.$http.post('/khw/c/h', paramString).then(res => {
           // this.closeLoading()
-          that.popupVisible = true
+          this.popupVisible = true
           let data = res.data
           if (data.returnCode === '000000') {
             let res = data.response
@@ -254,11 +253,18 @@
 
             // 返回处理结果后
             if (res.transStus !== 2) {
-              that.popupVisible = false
-              that.isRefresh = false
-              that.updateLoanAcctInfo()
+              this.popupVisible = false
+              this.isRefresh = false
+              this.updateLoanAcctInfo()
             }
+          } else {
+            this.popupVisible = false
+            this.toast(data.returnMsg, 1000)
           }
+        }).catch(err => {
+          this.closeLoading()
+          console.log(err)
+          this.toast(err.data.returnMsg)
         })
       },
       // 更新账户汇总信息
@@ -287,7 +293,7 @@
           let data = res.data
           if (data.returnCode === '000000') {
             let loanAcctInfo = data.response
-            // 缓存汇总信息
+            // 更新汇总信息
             that.$store.commit('summaryInfoSave', loanAcctInfo)
             // 5秒倒计时
             let timer = setInterval(function() {
@@ -299,13 +305,11 @@
               }
             }, 1000)
           } else {
-            // Toast({
-            //   message: data.returnMsg,
-            //   duration: 3000
-            // })
+            that.toast(data.returnMsg)
           }
-        }).catch(error => {
-          console.log(error)
+        }).catch(err => {
+          console.log(err)
+          that.toast(err.data.returnMsg)
         })
       }
     }

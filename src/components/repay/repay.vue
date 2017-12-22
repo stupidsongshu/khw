@@ -1,5 +1,5 @@
 <template>
-  <div class="repay">
+  <div class="repay" :class="{'has-footer': footer}">
     <mt-header fixed class="header" title="还款"></mt-header>
 
     <div v-if="hasRepay">
@@ -94,11 +94,16 @@
       // 设备类型
       deviceType() {
         return this.$store.state.common.deviceType
+      },
+      footer() {
+        // return this.$store.state.common.hasFooter
+        return this.$store.state.common.deviceType === 'android'
       }
     },
     created() {
       let summaryInfo = this.$store.state.common.summaryInfo
       if (summaryInfo) {
+        // 逾期状态 1逾期 2正常
         if (summaryInfo.overdueStatus === 1) {
           this.overdue = true
         } else if (summaryInfo.overdueStatus === 2) {
@@ -136,10 +141,13 @@
           this.remainAmtFlo = remainAmt.substring(remainAmt.length - 2)
           // 申请时间
           this.transTime = data.response.transTime
+        } else {
+          this.toast(data.returnMsg)
         }
       }).catch(err => {
         this.closeLoading()
         console.log(err)
+        this.toast(err.data.returnMsg)
       })
     },
     methods: {

@@ -1,5 +1,5 @@
 <template>
-  <div class="index no-header">
+  <div class="index no-header" :class="{'has-footer': footer}">
     <div class="bg-header">
       <!--<div class="title">
         <div></div>
@@ -50,13 +50,13 @@
 
     <mt-tabbar fixed v-if="deviceType === 'android'">
       <mt-tab-item id="loan">
-        <div class="self-tab-item">
+        <div class="self-tab-item" @click="toLoanHome">
           <img slot="icon" src="../../assets/img/bottom_icon_01_click.png">
           <span class="isSelected">借款</span>
         </div>
       </mt-tab-item>
       <mt-tab-item id="my">
-        <div class="self-tab-item">
+        <div class="self-tab-item" @click="toMy">
           <img slot="icon" src="../../assets/img/bottom_icon_03_nor.png">
           <span>我的</span>
         </div>
@@ -84,12 +84,24 @@
       },
       loan() {
         this.$router.push('/loan')
+      },
+      // 进入贷后主界面
+      toLoanHome() {
+        this.app.toLoanHome()
+      },
+      // 进入贷前'我的'
+      toMy() {
+        this.app.toMy()
       }
     },
     computed: {
       // 设备类型
       deviceType() {
         return this.$store.state.common.deviceType
+      },
+      footer() {
+        // return this.$store.state.common.hasFooter
+        return this.$store.state.common.deviceType === 'android'
       },
       // 最大额度
       loanMax() {

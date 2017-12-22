@@ -114,10 +114,12 @@
         timestamp: timestamp
       })
 
+      this.loading()
       this.$http.post('/khw/c/h', paramString).then(res => {
+        this.closeLoading()
+
         let data = res.data
         if (data.returnCode === '000000') {
-          console.log(data.response)
           let payOffAmtStr = data.response.payOffAmt.toString()
           this.payOffAmt = data.response.payOffAmt
           this.payOffAmtInt = payOffAmtStr.substring(0, payOffAmtStr.length - 2)
@@ -127,7 +129,13 @@
           this.intTot = data.response.intTot
           this.paygateOrderId = data.response.payGateOrderId
           this.realInstalPeriod = data.response.realInstalPeriod
+        } else {
+          this.toast(data.returnMsg)
         }
+      }).catch(err => {
+        this.closeLoading()
+        console.log(err)
+        this.toast(err.data.returnMsg)
       })
     },
     methods: {
@@ -162,11 +170,18 @@
         this.loading()
         this.$http.post('/khw/c/h', paramString).then(res => {
           this.closeLoading()
+
           let data = res.data
           if (data.returnCode === '000000') {
             this.popupVisible = true
             this.loanPlanList = data.response.list.splice(0, this.realInstalPeriod)
+          } else {
+            this.toast(data.returnMsg)
           }
+        }).catch(err => {
+          this.closeLoading()
+          console.log(err)
+          this.toast(err.data.returnMsg)
         })
       },
       ensure() {

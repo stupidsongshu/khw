@@ -21,8 +21,8 @@
         <div class="value">{{payAmt / 100}}</div>
       </div>
       <div class="item">
-        <div class="name">当前利息</div>
-        <div class="value">{{intTot / 100}}元 <router-link to="/rate" class="calc-rate"></router-link></div>
+        <div class="name">当前欠款</div>
+        <div class="value">{{totalLoanAmt / 100}}元 <router-link to="/rate" class="calc-rate"></router-link></div>
       </div>
       <div class="item">
         <div class="name">还款借记卡</div>
@@ -54,8 +54,8 @@
         transTime: '',
         // 本金
         payAmt: 0,
-        // 利息
-        intTot: 0,
+        // 当前欠款
+        totalLoanAmt: 0,
         // 借记卡卡号
         debitCardNo: '',
         // 开户行
@@ -66,10 +66,11 @@
     },
     mounted() {
       let summaryInfo = this.$store.state.common.summaryInfo
+      this.totalLoanAmt = summaryInfo.totalLoanAmt
       this.debitCardNo = summaryInfo.debitCardNo.substring(summaryInfo.debitCardNo.length - 4)
       this.decardOpenBank = summaryInfo.decardOpenBank
       this.realLiquidatedDamages = summaryInfo.realLiquidatedDamages
-      // 当前应还 = 本金 + 利息 + 违约金 (注意:若逾期需加上滞纳费)
+      // 当前应还 = 本金 + 当前欠款 + 提前还款违约金 (注意:若逾期还需加上滞纳费)
       let realTotalAmount = summaryInfo.realTotalAmount.toString()
       this.realTotalAmountInt = realTotalAmount.substring(0, realTotalAmount.length - 2)
       this.realTotalAmountFlo = realTotalAmount.substring(realTotalAmount.length - 2)
@@ -95,15 +96,18 @@
       this.loading()
       this.$http.post('/khw/c/h', paramString).then(res => {
         this.closeLoading()
+
         let data = res.data
         if (data.returnCode === '000000') {
           this.transTime = data.response.transTime
           this.payAmt = data.response.payAmt
-          this.intTot = data.response.intTot
+        } else {
+          this.toast(data.returnMsg)
         }
       }).catch(err => {
         this.closeLoading()
         console.log(err)
+        this.toast(err.data.returnMsg)
       })
     },
     methods: {
@@ -133,17 +137,23 @@
           timestamp: timestamp
         })
 
-        // this.loading()
+        this.loading()
         this.$http.post('/khw/c/h', paramString).then(res => {
-          // this.closeLoading()
+          this.closeLoading()
+
           let data = res.data
           if (data.returnCode === '000000') {
-            console.log(data.response)
-            // 缓存汇总信息
+            // 更新汇总信息
             this.$store.commit('summaryInfoSave', data.response.loanAcctInfo)
             this.$store.commit('cashRepaySave', data.response.cashRepay)
             this.checkSummaryInfo()
+          } else {
+            this.toast(data.returnMsg)
           }
+        }).catch(err => {
+          this.closeLoading()
+          console.log(err)
+          this.toast(err.data.returnMsg)
         })
       }
     }
