@@ -177,3 +177,7 @@ input:-ms-input-placeholder {      /* IE 10+ */
   border-radius: 6px;
   background-color: #4e433d;
 }
+
+.doubleClickExitApp {
+  color: #f1f1f1;
+}

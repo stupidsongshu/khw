@@ -44,6 +44,11 @@ if (/iphone/gi.test(ua)) {
   store.commit('deviceTypeSave', 'android')
 }
 
+window.jsIos = function(json) {
+  console.log(typeof json)
+  console.log(json)
+}
+
 /**
  * 检查申请资格认证状态并存储
  * @return false未通过
@@ -80,19 +85,29 @@ app.ShowView = function() {
     })
   }
 }
+
+var startTime = new Date().getTime()
+// 物理返回键
 app.back = function() {
-  router.push()
   window.history.go(-1)
-  let loginInfo = JSON.parse(this.isLogin())
-  if (loginInfo.Step === 0 && loginInfo.Result === 0) { // 已登录
-    // alert('已登录')
-  } else if (loginInfo.Step === 0 && loginInfo.Result !== 0) { // 未登录
-    // alert('未登录')
-    // Vue.prototype.goHome = function() {
-    //   console.log(this)
-    // }
+
+  if (router.currentRoute.path === '/') {
+    Toast({
+      message: '再按一次退出应用',
+      duration: 1000,
+      position: 'bottom',
+      className: 'doubleClickExitApp'
+    })
+    var time = new Date().getTime()
+    // 双击后退退出应用
+    if (time - startTime < 1000) {
+      app.exit()
+    } else {
+      startTime = time
+    }
   }
 }
+
 Vue.prototype.goback = function() {
   this.$router.go(-1)
 }
@@ -111,7 +126,7 @@ Vue.prototype.toast = function(message, duration) {
     message = ''
   }
   if (!duration) {
-    duration = 1000
+    duration = 1200
   }
   Toast({
     message: message,
@@ -373,7 +388,7 @@ Vue.prototype.appInit = function() {
           // that.$store.dispatch('loan_max_actions_save', loanAcctInfo.baseTotCreLine)
           // 缓存汇总信息
           that.$store.commit('summaryInfoSave', loanAcctInfo)
-          that.checkSummaryInfo()
+          // that.checkSummaryInfo()
         } else {
           that.toast(data.returnMsg)
         }
@@ -441,6 +456,23 @@ Vue.prototype.init = function() {
     console.log(error)
   })
 }
+
+// if (window.webkit !== undefined && window.webkit.messageHandlers !== undefined) {
+//   try {
+//     window.webkit.messageHandlers.reloadMsxfToken.postMessage()
+//   } catch (err) {
+//     console.log(err)
+//   }
+// } else if (window.jsInterface !== undefined) {
+//   try {
+//     javascript:jsInterface.reloadMsxfToken()
+//   } catch (err) {
+//     console.log(err)
+//   }
+// } else {
+//   console.log('调用ios或android接口失败！')
+// }
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',
@@ -478,8 +510,8 @@ new Vue({
       return Promise.reject(error)
     })
 
-    // this.appInit()
-    this.init()
+    this.appInit()
+    // this.init()
   }
 })
 

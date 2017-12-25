@@ -50,7 +50,7 @@
 
     <mt-tabbar fixed v-if="deviceType === 'android'">
       <mt-tab-item id="loan">
-        <div class="self-tab-item" @click="toLoanHome">
+        <div class="self-tab-item">
           <img slot="icon" src="../../assets/img/bottom_icon_01_click.png">
           <span class="isSelected">借款</span>
         </div>
@@ -85,13 +85,9 @@
       loan() {
         this.$router.push('/loan')
       },
-      // 进入贷后主界面
-      toLoanHome() {
-        this.app.toLoanHome()
-      },
       // 进入贷前'我的'
       toMy() {
-        this.app.toMy()
+        this.app.toMy1()
       }
     },
     computed: {

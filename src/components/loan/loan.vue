@@ -86,8 +86,8 @@
       v-model="popupVisible"
       popup-transition="popup-fade"
       position="bottom"
-      modal="false"
-      closeOnClickModal="false"
+      :modal="true"
+      :closeOnClickModal="false"
       id="loanPlanPopup">
       <div class="picker-nav">
         <div class="picker-btn picker-btn-l color999">请选择用途</div>
@@ -272,11 +272,8 @@
       let commonParams = this.$store.state.common.commonParams
       let ua = commonParams.ua
       let call = 'Loan.creditCard'
-      let timestamp = new Date().getTime()
-      let sign = this.sign(ua, call, timestamp)
+      let timestamp = new Date().getTime().toString()
       let getSign = this.getSign(call, timestamp)
-      console.log('sign:' + sign)
-      console.log('getSign:' + getSign)
       let paramString = JSON.stringify({
         ua: ua,
         call: call,
@@ -286,7 +283,7 @@
           token: commonParams.args.token,
           loanAcctNo: commonParams.args.loanAcctNo
         },
-        sign: sign,
+        sign: getSign,
         timestamp: timestamp
       })
       this.loading()
@@ -542,7 +539,8 @@
           width: 80px
           display: flex
           align-items: center
-          padding-top: 2px // fix 相对右边偏高
+          padding-top: 2px
+        // fix 相对右边偏高
         .loan-purpose-select
           flex: 1
           display: flex
