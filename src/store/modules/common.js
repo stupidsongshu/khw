@@ -3,6 +3,7 @@ const state = {
    * 设备类型
   */
   deviceType: '',
+  sign: '',
   /**
    * 底部tabbar
    * hasFooter: 显示隐藏
@@ -27,7 +28,7 @@ const state = {
     mobile: ''
   },
   /**
-   * 用户状态 (尚未使用)
+   * 用户借还款状态
    * userStatus: 0借款 1还款
    */
   userStatus: 0,
@@ -54,6 +55,9 @@ const getters = {}
 const mutations = {
   deviceTypeSave(state, payload) {
     state.deviceType = payload
+  },
+  signSave(state, payload) {
+    state.sign = payload
   },
   hasFooterSave(state, payload) {
     state.hasFooter = payload

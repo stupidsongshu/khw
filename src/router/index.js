@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-// import store from './../store'
+import store from './../store'
+import { Toast } from 'mint-ui'
 // 首页
 // import Home from '@/components/home'
 // 登录注册
@@ -122,9 +123,11 @@ const routes = [
     name: 'khw',
     component: Khw,
     beforeEnter: (to, from, next) => {
-      next(vm => {
-        console.log(vm)
-      })
+      // let vm = router.app
+      // console.log(vm.appInit)
+      // vm.appInit()
+      // console.log(4)
+      next()
     }
   },
   {
@@ -329,6 +332,20 @@ const router = new VueRouter({
   routes
 })
 
+/**
+ * 检测设备类型
+ */
+let ua = window.navigator.userAgent
+if (/iphone/gi.test(ua)) {
+  console.log('iphone')
+  store.commit('deviceTypeSave', 'iphone')
+} else if (/android/gi.test(ua)) {
+  console.log('android')
+  store.commit('deviceTypeSave', 'android')
+}
+
+let deviceType = store.state.common.deviceType
+
 router.beforeEach((to, from, next) => {
   /**
    * 底部tabbar显示隐藏
@@ -343,15 +360,56 @@ router.beforeEach((to, from, next) => {
   //   store.commit('hasFooterSave', false)
   // }
 
-  // let ua = window.navigator.userAgent
-  // if (/iphone/gi.test(ua)) {
-  //   alert('iphone')
-  //   store.commit('deviceTypeSave', 'iphone')
-  // } else if (/android/gi.test(ua)) {
-  //   alert('android')
-  //   store.commit('deviceTypeSave', 'android')
+  // 网络监测
+  /* eslint-disable no-undef */
+  // console.log('deviceType: ' + deviceType)
+  // if (deviceType === 'android') {
+  //   console.log('android网络监测: ' + app.isNet())
+  //   if (app.isNet()) {
+  //     next()
+  //   } else {
+  //     Toast({
+  //       message: '请连接网络'
+  //     })
+  //     next(false)
+  //   }
+  // } else if (deviceType === 'iphone') {
+  //   console.log('TODO：ios网络监测')
+  //   next()
   // }
-  next()
+
+  // fix ios footer只在贷后首页和还款页面显示
+  if (deviceType === 'iphone') {
+    if (window.webkit !== undefined && window.webkit.messageHandlers !== undefined) {
+      try {
+        if (to.path === '/' || to.path === 'repay') {
+          window.webkit.messageHandlers.footerShow.postMessage({
+            show: true
+          })
+        } else {
+          window.webkit.messageHandlers.footerShow.postMessage({
+            show: false
+          })
+        }
+      } catch (err) {
+        console.log(err)
+      }
+    } else {
+      console.log('调用ios接口失败！')
+    }
+  }
+
+  let isNet = window.navigator.onLine
+  console.log('deviceType：' + deviceType, ' 网络监测：' + isNet)
+  if (!isNet) {
+    Toast({
+      message: '请打开网络',
+      duration: 800
+    })
+    next(false)
+  } else {
+    next()
+  }
 })
 // router.afterEach((to, from, next) => {
 //   document.title = to.name

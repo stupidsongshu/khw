@@ -42,7 +42,6 @@
     </div>
 
     <div class="loan-btn">
-      <!--<router-link to="/loan" class="btn">立即借款</router-link>-->
       <mt-button class="btn" @click="loan">立即借款</mt-button>
     </div>
 
@@ -83,10 +82,12 @@
         this.$store.commit('loan_duration_save', time)
       },
       loan() {
-        this.$router.push('/loan')
+        this.$router.replace('/loan')
       },
       // 进入贷前'我的'
       toMy() {
+        /* eslint-disable no-undef */
+        app.setLoanStatus(0)
         this.app.toMy1()
       }
     },
@@ -122,7 +123,8 @@
       }
     },
     beforeRouteEnter(to, from, next) {
-      next(vm => {})
+      next(vm => {
+      })
     }
   }
 </script>
@@ -230,7 +232,7 @@
     color: #d2d1d1
     background-color: #fff !important
     background-image: none
-    border-top: 1px solid #d9d9d9
+    border-top: 1px solid #d9d9d9; /*no*/
     .mint-tab-item
       &.is-selected
         color: #d2d1d1

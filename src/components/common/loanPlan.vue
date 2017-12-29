@@ -13,7 +13,7 @@
       <div class="plan-detail">
         <div>时间：{{loanPlanItem.prePayDay | date}}</div>
         <div>本金：{{(loanPlanItem.prePrin / 100).toFixed(2)}}</div>
-        <div>月利率费：{{(loanPlanItem.preInt / 100).toFixed(2)}}</div>
+        <div>月利率费：{{(loanPlanItem.preFee / 100).toFixed(2)}}</div>
       </div>
       <div class="plan-amount">{{(loanPlanItem.preAmt / 100).toFixed(2)}}</div>
     </div>
@@ -76,12 +76,12 @@
       display: flex
       align-items: center
       color: #333
-      border-bottom: 1px solid #d9d9d9
+      border-bottom: 1px solid #d9d9d9; /*no*/
       &:last-child
         border: none
       .plan-detail
         line-height: 24px
-        font-size: 12px
+        font-size: 12px; /*no*/
       .plan-amount
         color: main-color
 

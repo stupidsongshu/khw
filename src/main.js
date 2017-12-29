@@ -6,6 +6,7 @@ import router from './router'
 import axios from 'axios'
 import store from './store/index'
 import md5 from 'blueimp-md5'
+// import getDataFromIos from './ios'
 // import qs from 'qs'
 import MintUI, {Indicator, Toast} from 'mint-ui'
 import 'mint-ui/lib/style.css'
@@ -20,34 +21,56 @@ var vConsole = new VConsole()
 
 Vue.config.productionTip = false
 Vue.use(MintUI)
+
+/* eslint-disable no-undef */
+Vue.prototype.app = app
+
 Vue.prototype.$http = axios
 
 Vue.prototype.goHome = function() {
   this.$router.push('/')
 }
 
-/* eslint-disable no-undef */
-Vue.prototype.app = app
-/**
- * 检测设备类型
- */
-// console.log(app.system())
+// window.activeMethodIos = function(loanAcctNo, mobileNo, token, customerId) {
+//   console.log('loanAcctNo: ' + loanAcctNo)
+//   console.log('mobileNo: ' + mobileNo)
+//   console.log('token: ' + token)
+//   console.log('customerId: ' + customerId)
+//   let deviceType = store.state.common.deviceType
+//   if (deviceType === 'iphone') {
+//     store.commit('commonParamsSave', {
+//       ua: 'KHW_H5_SIGN',
+//       args: {
+//         loanAcctNo: loanAcctNo,
+//         mobileNo: mobileNo,
+//         token: token,
+//         customerId: customerId
+//       }
+//     })
+//   }
+// }
 
-let ua = window.navigator.userAgent
-if (/iphone/gi.test(ua)) {
-  // alert('iphone')
-  console.log('iphone')
-  store.commit('deviceTypeSave', 'iphone')
-} else if (/android/gi.test(ua)) {
-  // alert('android')
-  console.log('android')
-  store.commit('deviceTypeSave', 'android')
-}
+// window.activeGetSignKeyIos = function(signKey) {
+//   console.log(signKey)
+//   return signKey
+// }
 
-window.jsIos = function(json) {
-  console.log(typeof json)
-  console.log(json)
-}
+// if (window.webkit !== undefined && window.webkit.messageHandlers !== undefined) {
+//   try {
+//     window.webkit.messageHandlers.activeMethodIos.postMessage()
+//   } catch (err) {
+//     console.log(err)
+//   }
+// } else if (window.jsInterface !== undefined) {
+//   try {
+//     /* eslint-disable no-labels */
+//     javascript:jsInterface.activeMethodIos()
+//   } catch (err) {
+//     console.log(err)
+//   }
+// } else {
+//   console.log('调用ios或android接口失败！')
+// }
 
 /**
  * 检查申请资格认证状态并存储
@@ -91,12 +114,11 @@ var startTime = new Date().getTime()
 app.back = function() {
   window.history.go(-1)
 
-  if (router.currentRoute.path === '/') {
+  if (router.currentRoute.path === '/' || router.currentRoute.path === '/repay') {
     Toast({
       message: '再按一次退出应用',
       duration: 1000,
-      position: 'bottom',
-      className: 'doubleClickExitApp'
+      position: 'bottom'
     })
     var time = new Date().getTime()
     // 双击后退退出应用
@@ -105,6 +127,9 @@ app.back = function() {
     } else {
       startTime = time
     }
+  }
+  if (router.currentRoute.path === '/loan') {
+    router.replace('/')
   }
 }
 
@@ -296,8 +321,44 @@ Vue.prototype.sign = function(ua, call, timestamp) {
   let sign = md5(ua + '&' + call + '&' + timestamp + '&' + signKey)
   return sign
 }
+
+// window.getSignKeyToWeb = function(signKey) {
+//   console.log('signKey1：' + signKey)
+//   return signKey
+// }
+
 Vue.prototype.getSign = function(call, timestamp) {
-  return app.sign(call, timestamp)
+  var sign = ''
+  let deviceType = this.$store.state.common.deviceType
+  if (deviceType === 'android') {
+    // 注意: android传入的timestamp<number>需转成<string>
+    let timestampStr = timestamp.toString()
+    sign = app.sign(call, timestampStr)
+    store.commit('signSave', sign)
+  } else if (deviceType === 'iphone') {
+    if (window.webkit !== undefined && window.webkit.messageHandlers !== undefined) {
+      try {
+        window.webkit.messageHandlers.getSignKeyFromIos.postMessage('')
+
+        window.getSignKeyToWeb = function(signKey) {
+          let key = signKey
+          console.log('signKey：' + key)
+          sign = md5('KHW_H5_SIGN' + '&' + call + '&' + timestamp + '&' + key)
+          console.log('sign0: ' + sign)
+          store.commit('signSave', sign)
+        }
+
+        // let key = window.getSignKeyToWeb()
+        // console.log('key: ' + key)
+        // sign.val = md5('KHW_H5_SIGN' + '&' + call + '&' + timestamp + '&' + key)
+        // console.log('sign0: ' + sign)
+      } catch (err) {
+        console.log(err)
+      }
+    } else {
+      console.log('调用ios接口失败！')
+    }
+  }
 }
 
 Vue.prototype.checkSummaryInfo = function() {
@@ -311,11 +372,22 @@ Vue.prototype.checkSummaryInfo = function() {
    * @return:
    */
   let loanAcctInfo = this.$store.state.common.summaryInfo
+  console.log(loanAcctInfo)
+  let deviceType = this.$store.state.common.deviceType
 
   // 账户还款中冻结状态
   if (loanAcctInfo.payFrozenStus !== '0') {
     // 还款处理中
     this.$router.replace('/repay/repayDeal')
+    /**
+     * 用户借还款状态
+     * userStatus: 0借款 1还款
+     */
+    this.$store.commit('userStatusSave', 1)
+    if (deviceType === 'android') {
+      // setLoanStatus(int) 借还款状态: 0借款 1还款
+      app.setLoanStatus(1)
+    }
     return
   }
 
@@ -323,29 +395,49 @@ Vue.prototype.checkSummaryInfo = function() {
   if (loanAcctInfo.tempFrozenAmt > 0) {
     // 借款处理中
     this.$router.replace('/loanDeal')
+    this.$store.commit('userStatusSave', 0)
+    if (deviceType === 'android') {
+      // setLoanStatus(int) 借还款状态: 0借款 1还款
+      app.setLoanStatus(0)
+    }
     return
   }
 
   // 逾期状态 1逾期 2正常
   if (loanAcctInfo.overdueStatus === 1) {
     this.$router.replace('/repay/overdueRepay')
+    this.$store.commit('userStatusSave', 1)
+    if (deviceType === 'android') {
+      // setLoanStatus(int) 借还款状态: 0借款 1还款
+      app.setLoanStatus(1)
+    }
     return
   }
 
   // 实际欠款合计
   if (loanAcctInfo.totalLoanAmt > 0) {
     this.$router.replace('/repay')
+    this.$store.commit('userStatusSave', 1)
+    if (deviceType === 'android') {
+      // setLoanStatus(int) 借还款状态: 0借款 1还款
+      app.setLoanStatus(1)
+    }
     return
   }
 
   this.$router.push('/')
+  this.$store.commit('userStatusSave', 0)
+  if (deviceType === 'android') {
+    // setLoanStatus(int) 借还款状态: 0借款 1还款
+    app.setLoanStatus(0)
+  }
 }
-
+// appInit 测试
 Vue.prototype.appInit = function() {
   let that = this
   this.loading()
   this.$http.post('/khw/c/l?mobileNo=13786868686').then(res => {
-    that.closeLoading()
+  // this.$http.post('/khw/c/l?mobileNo=15021955726').then(res => {
     if (res.data.returnCode === '000000') {
       let data = res.data.response
       let args = {
@@ -380,50 +472,43 @@ Vue.prototype.appInit = function() {
 
       that.loading()
       that.$http.post('/khw/c/h', paramString).then(res => {
-        that.closeLoading()
         let data = res.data
         if (data.returnCode === '000000') {
           let loanAcctInfo = data.response
+          console.log(loanAcctInfo)
           that.$store.commit('loan_max_save', loanAcctInfo.baseTotCreLine)
-          // that.$store.dispatch('loan_max_actions_save', loanAcctInfo.baseTotCreLine)
           // 缓存汇总信息
           that.$store.commit('summaryInfoSave', loanAcctInfo)
-          // that.checkSummaryInfo()
+          that.checkSummaryInfo()
         } else {
           that.toast(data.returnMsg)
         }
       }).catch(error => {
-        that.closeLoading()
         console.log(error)
       })
     } else {
       that.toast(res.data.returnMsg)
     }
   }).catch(err => {
-    that.closeLoading()
     console.log(err)
   })
 }
 
-Vue.prototype.init = function() {
+// 账户汇总信息查询
+Vue.prototype.getLoanInfo = function() {
   let that = this
 
-  let userData = app.userData()
-  if (typeof userData === 'string') {
-    userData = JSON.parse(userData)
-    console.log(userData)
-  }
-  store.commit('commonParamsSave', {
-    ua: 'KHW_H5_SIGN',
-    args: userData
-  })
+  let commonParams = store.state.common.commonParams
 
-  // 账户汇总信息查询
-  let commonParams = that.$store.state.common.commonParams
   let ua = commonParams.ua
   let call = 'Loan.loanAcctInfo'
   let timestamp = new Date().getTime()
-  let sign = that.sign(ua, call, timestamp)
+  // let sign = that.getSign(call, timestamp)
+  that.getSign(call, timestamp)
+  let sign = store.state.common.sign
+
+  console.log('sign2: ' + sign)
+
   let paramString = JSON.stringify({
     ua: ua,
     call: call,
@@ -436,6 +521,8 @@ Vue.prototype.init = function() {
     sign: sign,
     timestamp: timestamp
   })
+
+  console.log(paramString)
 
   that.loading()
   that.$http.post('/khw/c/h', paramString).then(res => {
@@ -452,26 +539,66 @@ Vue.prototype.init = function() {
       that.toast(data.returnMsg)
     }
   }).catch(error => {
-    that.closeLoading()
     console.log(error)
   })
 }
 
-// if (window.webkit !== undefined && window.webkit.messageHandlers !== undefined) {
-//   try {
-//     window.webkit.messageHandlers.reloadMsxfToken.postMessage()
-//   } catch (err) {
-//     console.log(err)
-//   }
-// } else if (window.jsInterface !== undefined) {
-//   try {
-//     javascript:jsInterface.reloadMsxfToken()
-//   } catch (err) {
-//     console.log(err)
-//   }
-// } else {
-//   console.log('调用ios或android接口失败！')
-// }
+// init 正式
+Vue.prototype.init = function() {
+  let that = this
+  let userData
+
+  let deviceType = this.$store.state.common.deviceType
+  if (deviceType === 'android') {
+    userData = app.userData()
+    if (typeof userData === 'string') {
+      userData = JSON.parse(userData)
+    }
+    store.commit('commonParamsSave', {
+      ua: 'KHW_H5_SIGN',
+      args: userData
+    })
+    if (userData.loanAcctNo) {
+      that.getLoanInfo()
+    }
+  } else if (deviceType === 'iphone') {
+    if (window.webkit !== undefined && window.webkit.messageHandlers !== undefined) {
+      try {
+        window.webkit.messageHandlers.getDataNotifition.postMessage('')
+
+        window.activeMethodIos = function(loanAcctNo, mobileNo, token, customerId) {
+          userData = {
+            loanAcctNo: loanAcctNo,
+            mobileNo: mobileNo,
+            token: token,
+            customerId: customerId
+          }
+          console.log('userData ios')
+          console.log(userData)
+          console.log('userData ios')
+          store.commit('commonParamsSave', {
+            ua: 'KHW_H5_SIGN',
+            args: userData
+          })
+          if (loanAcctNo && mobileNo && token && customerId) {
+            that.getLoanInfo()
+          }
+        }
+      } catch (err) {
+        console.log(err)
+      }
+    } else if (window.jsInterface !== undefined) {
+      try {
+        /* eslint-disable no-labels */
+        javascript:jsInterface.getDataNotifition()
+      } catch (err) {
+        console.log(err)
+      }
+    } else {
+      console.log('调用ios或android接口失败！')
+    }
+  }
+}
 
 /* eslint-disable no-new */
 new Vue({
@@ -483,6 +610,8 @@ new Vue({
   created() {
     axios.defaults.baseURL = 'http://xfjr.ledaikuan.cn:9191'
     // axios.defaults.baseURL = 'http://114.80.124.254:9191'
+    // `timeout` 指定请求超时的毫秒数(0 表示无超时时间)，如果请求超过 `timeout` 的时间，请求将被中断
+    axios.defaults.timeout = 20000
 
     // axios.defaults.transformRequest = [function(data) {
     //   if (data) {
@@ -504,14 +633,19 @@ new Vue({
       return Promise.reject(error)
     })
     axios.interceptors.response.use(function(response) {
-      // Indicator.close()
+      Indicator.close()
       return response
     }, function(error) {
+      Indicator.close()
+      Toast({
+        message: '获取数据失败，请稍后重试',
+        duration: 2000
+      })
       return Promise.reject(error)
     })
 
-    this.appInit()
-    // this.init()
+    // this.appInit()
+    this.init()
   }
 })
 

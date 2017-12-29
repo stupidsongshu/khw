@@ -18,11 +18,11 @@
       <div class="title">明细</div>
       <div class="item">
         <div class="name">本金</div>
-        <div class="value">{{payAmt / 100}}</div>
+        <div class="value">{{payAmt / 100}}元</div>
       </div>
       <div class="item">
-        <div class="name">当前利息</div>
-        <div class="value">{{intTot}}元 <router-link to="/rate" class="calc-rate"></router-link></div>
+        <div class="name">当前费用</div>
+        <div class="value">{{insFeeTot / 100}}元 <router-link to="/rate" class="calc-rate"></router-link></div>
       </div>
       <div class="item">
         <div class="name">还款借记卡</div>
@@ -77,8 +77,8 @@
         transTime: '',
         // 本金
         payAmt: 0,
-        // 利息
-        intTot: 0,
+        // 当前费用
+        insFeeTot: 0,
         // 借记卡卡号
         debitCardNo: '',
         // 开户行
@@ -116,8 +116,6 @@
 
       this.loading()
       this.$http.post('/khw/c/h', paramString).then(res => {
-        this.closeLoading()
-
         let data = res.data
         if (data.returnCode === '000000') {
           let payOffAmtStr = data.response.payOffAmt.toString()
@@ -126,16 +124,14 @@
           this.payOffAmtFlo = payOffAmtStr.substring(payOffAmtStr.length - 2)
           this.transTime = data.response.transTime
           this.payAmt = data.response.payAmt
-          this.intTot = data.response.intTot
+          this.insFeeTot = data.response.insFeeTot
           this.paygateOrderId = data.response.payGateOrderId
           this.realInstalPeriod = data.response.realInstalPeriod
         } else {
           this.toast(data.returnMsg)
         }
       }).catch(err => {
-        this.closeLoading()
         console.log(err)
-        this.toast(err.data.returnMsg)
       })
     },
     methods: {
@@ -169,8 +165,6 @@
 
         this.loading()
         this.$http.post('/khw/c/h', paramString).then(res => {
-          this.closeLoading()
-
           let data = res.data
           if (data.returnCode === '000000') {
             this.popupVisible = true
@@ -179,9 +173,7 @@
             this.toast(data.returnMsg)
           }
         }).catch(err => {
-          this.closeLoading()
           console.log(err)
-          this.toast(err.data.returnMsg)
         })
       },
       ensure() {

@@ -18,7 +18,7 @@
       <div class="title">明细</div>
       <div class="item">
         <div class="name">本金</div>
-        <div class="value">{{payAmt / 100}}</div>
+        <div class="value">{{payAmt / 100}}元</div>
       </div>
       <div class="item">
         <div class="name">当前欠款</div>
@@ -95,8 +95,6 @@
 
       this.loading()
       this.$http.post('/khw/c/h', paramString).then(res => {
-        this.closeLoading()
-
         let data = res.data
         if (data.returnCode === '000000') {
           this.transTime = data.response.transTime
@@ -105,9 +103,7 @@
           this.toast(data.returnMsg)
         }
       }).catch(err => {
-        this.closeLoading()
         console.log(err)
-        this.toast(err.data.returnMsg)
       })
     },
     methods: {
@@ -139,8 +135,6 @@
 
         this.loading()
         this.$http.post('/khw/c/h', paramString).then(res => {
-          this.closeLoading()
-
           let data = res.data
           if (data.returnCode === '000000') {
             // 更新汇总信息
@@ -151,9 +145,7 @@
             this.toast(data.returnMsg)
           }
         }).catch(err => {
-          this.closeLoading()
           console.log(err)
-          this.toast(err.data.returnMsg)
         })
       }
     }

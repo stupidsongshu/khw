@@ -1,7 +1,7 @@
 <template>
   <div class="loan">
     <mt-header fixed class="header" title="立即借款">
-      <div slot="left" @click="back">
+      <div slot="left" @click="toHome">
         <mt-button icon="back"></mt-button>
       </div>
     </mt-header>
@@ -46,12 +46,14 @@
       </div>
 
       <div class="loan-code">
-        <span class="code-name">验&nbsp;证&nbsp;码：</span>
-        <!--<input class="code-input" type="number" placeholder="请输入短信验证码" v-model="vcode" oninput=" if(value.length>6){value = value.slice(0,6)}">-->
-        <input class="code-input" type="text" placeholder="请输入短信验证码" v-model="vcode" :keyup="write(vcode)">
-        <!--<input class="code-input" type="text" placeholder="请输入短信验证码" v-model="vcode" @keyup="write1($event, vcode)">-->
-        <button class="code-btn" v-show="!hasGetCode" @click="getCode">发送验证码</button>
-        <button class="code-btn" v-show="hasGetCode">{{time}}s后重新获取</button>
+        <span class="code-name">验证码：</span>
+        <div class="code-input-wrapper">
+          <!--<input class="code-input" type="number" placeholder="请输入短信验证码" v-model="vcode" oninput=" if(value.length>6){value = value.slice(0,6)}">-->
+          <input class="code-input" type="text" placeholder="请输入短信验证码" v-model="vcode" :keyup="write(vcode)">
+          <!--<input class="code-input" type="text" placeholder="请输入短信验证码" v-model="vcode" @keyup="write1($event, vcode)">-->
+          <button class="code-btn" v-show="!hasGetCode" @click="getCode">发送验证码</button>
+          <button class="code-btn" v-show="hasGetCode">{{time}}s后重新获取</button>
+        </div>
       </div>
 
       <!--<div class="form">
@@ -70,7 +72,9 @@
       <div class="loan-item">
         <div class="agreement-wrapper">
           <input type="checkbox" id="agreementInput" :checked="checked" @click="toggleAgree">
-          <label class="agreement-label" for="agreementInput">我同意并知晓</label><a class="agreement" href="newtab:http://www.kahuanwang.com/agreement/loan.html">《借款协议》</a>
+          <label class="agreement-label" for="agreementInput">我同意并知晓</label>
+          <a v-if="deviceType === 'android'" class="agreement" href="newtab:http://www.kahuanwang.com/agreement/loan.html">《借款协议》</a>
+          <a v-if="deviceType === 'iphone'" class="agreement" @click="loanAgreementPage">《借款协议》</a>
         </div>
       </div>
     </div>
@@ -128,6 +132,10 @@
       }
     },
     computed: {
+      // 设备类型
+      deviceType() {
+        return this.$store.state.common.deviceType
+      },
       loanLimit() {
         return this.$store.state.loan.loan_limit / 100
       },
@@ -268,12 +276,11 @@
       this.loanPurposeSlot[0].values = this.loanPurposeValues
 
       // 收款银行
-      let that = this
       let commonParams = this.$store.state.common.commonParams
       let ua = commonParams.ua
       let call = 'Loan.creditCard'
       let timestamp = new Date().getTime().toString()
-      let getSign = this.getSign(call, timestamp)
+      let sign = this.getSign(call, timestamp)
       let paramString = JSON.stringify({
         ua: ua,
         call: call,
@@ -283,12 +290,11 @@
           token: commonParams.args.token,
           loanAcctNo: commonParams.args.loanAcctNo
         },
-        sign: getSign,
+        sign: sign,
         timestamp: timestamp
       })
       this.loading()
       this.$http.post('/khw/c/h', paramString).then(res => {
-        that.closeLoading()
         let data = res.data
         if (data.returnCode === '000000') {
           let dataS = data.response
@@ -298,7 +304,7 @@
           this.openBank = dataS.openBank
         }
       }).catch(err => {
-        that.toast(err.returnMsg)
+        console.log(err)
       })
     },
     methods: {
@@ -339,8 +345,20 @@
         // if (!bool) {
         // }
       },
-      back() {
-        this.goback()
+      toHome() {
+        this.$router.replace('/')
+      },
+      // ios 交互加载外链
+      loanAgreementPage() {
+        if (window.webkit !== undefined && window.webkit.messageHandlers !== undefined) {
+          try {
+            window.webkit.messageHandlers.loanAgreementPage.postMessage('')
+          } catch (err) {
+            console.log(err)
+          }
+        } else {
+          console.log('调用ios接口失败！')
+        }
       },
       selectPurpose() {
         this.popupVisible = true
@@ -379,7 +397,8 @@
         let ua = commonParams.ua
         let call = 'Boccfc.dyanmicPwd'
         let timestamp = new Date().getTime()
-        let sign = this.sign(ua, call, timestamp)
+        // let sign = this.sign(ua, call, timestamp)
+        let sign = that.getSign(call, timestamp)
         let paramString = JSON.stringify({
           ua: ua,
           call: call,
@@ -395,7 +414,6 @@
 
         this.loading()
         this.$http.post('/khw/c/h', paramString).then(res => {
-          that.closeLoading()
           if (res.data.response === '000000') {
             that.hasGetCode = true
             let timer = setInterval(() => {
@@ -410,9 +428,7 @@
             that.toast(res.data.returnMsg)
           }
         }).catch(err => {
-          that.closeLoading()
           console.log(err)
-          that.toast(err.data.returnMsg)
         })
       },
       // 借款
@@ -431,7 +447,8 @@
         let ua = commonParams.ua
         let call = 'Loan.cashExtract'
         let timestamp = new Date().getTime()
-        let sign = this.sign(ua, call, timestamp)
+        // let sign = this.sign(ua, call, timestamp)
+        let sign = that.getSign(call, timestamp)
         let paramString = JSON.stringify({
           ua: ua,
           call: call,
@@ -451,7 +468,6 @@
 
         this.loading()
         this.$http.post('/khw/c/h', paramString).then(res => {
-          that.closeLoading()
           let data = res.data
           if (data.returnCode === '000000') {
             let dataS = data.response
@@ -463,9 +479,7 @@
             that.toast(data.returnMsg)
           }
         }).catch(err => {
-          that.closeLoading()
           console.log(err)
-          that.toast(err.data.returnMsg)
         })
       }
     }
@@ -481,11 +495,11 @@
     content: ''
     display: inline-block
     position: relative
-    top: 1px
+    top: 2px
     margin-right: 4px
     width: 12px
     height: 12px
-    border: 1px solid #ccc
+    border: 1px solid #ccc; /*no*/
   #agreementInput:checked + .agreement-label:before
     background: url('../../assets/img/icon_checked.png') no-repeat center / 12px 12px
 
@@ -533,14 +547,14 @@
         display: flex
         height: 54px
         padding: 0 15px
-        border-bottom: 1px solid #e3e3e3 /*no*/
+        border-bottom: 1px solid #e3e3e3; /*no*/
         .loan-purpose-name
           flex-basis: 80px
           width: 80px
           display: flex
           align-items: center
+          // fix 相对右边偏高
           padding-top: 2px
-        // fix 相对右边偏高
         .loan-purpose-select
           flex: 1
           display: flex
@@ -592,7 +606,7 @@
             width: 14px
             height: 14px
             outline: none
-            border: 1px solid main-color
+            border: 1px solid main-color; /*no*/
           .agreement
             color: main-color
 
@@ -604,17 +618,22 @@
           flex-basis: 80px
           width: 80px
           color: #999
-        .code-input
-          flex: 2
-          border: none
-        .code-btn
+        .code-input-wrapper
+          position: relative
           flex: 1
-          padding-left: 6px
-          white-space: nowrap
-          font-size: 13px
-          border: none
-          border-left: 1px solid main-color
-          background-color: transparent
+          .code-input
+            border: none
+          .code-btn
+            position: absolute
+            top: 50%
+            right: 0
+            transform: translateY(-50%)
+            padding-left: 6px
+            white-space: nowrap
+            font-size: 13px
+            border: none
+            border-left: 1px solid main-color; /*no*/
+            background-color: transparent
 
     .repayment-title
       line-height: 44px

@@ -1,12 +1,6 @@
 <template>
   <div class="repay-deal">
-    <mt-header fixed class="header" title="还款">
-      <!--<div slot="left" @click="back">
-        <mt-button icon="back"></mt-button>
-      </div>-->
-    </mt-header>
-
-
+    <mt-header fixed class="header" title="还款"></mt-header>
 
     <div class="deal-banner">
       <div class="status" v-show="status === 0">提交成功</div>
@@ -112,7 +106,7 @@
       :modal="true"
       :closeOnClickModal="false">
       <div class="deal-success">
-        <img class="deal-success-gif" src="../../assets/img/deal-success-repay.gif" alt="">
+        <img class="deal-success-repay-gif" src="../../assets/img/deal-success-repay.gif" alt="">
         <div class="deal-success-txt">您的还款正在处理哦~请耐心等待</div>
       </div>
     </mt-popup>
@@ -197,9 +191,6 @@
       }, 3000)
     },
     methods: {
-      back() {
-        this.goback()
-      },
       checkRepayDeal() {
         let cashRepay = this.$store.state.common.cashRepay
         console.log(cashRepay.amount, cashRepay.merchantOrderId)
@@ -228,9 +219,7 @@
           timestamp: timestamp
         })
 
-        // this.loading()
         this.$http.post('/khw/c/h', paramString).then(res => {
-          // this.closeLoading()
           this.popupVisible = true
           let data = res.data
           if (data.returnCode === '000000') {
@@ -262,20 +251,18 @@
             this.toast(data.returnMsg, 1000)
           }
         }).catch(err => {
-          this.closeLoading()
           console.log(err)
-          this.toast(err.data.returnMsg)
         })
       },
       // 更新账户汇总信息
       updateLoanAcctInfo() {
         let that = this
         // 账户汇总信息查询
-        let commonParams = that.$store.state.common.commonParams
+        let commonParams = this.$store.state.common.commonParams
         let ua = commonParams.ua
         let call = 'Loan.loanAcctInfo'
         let timestamp = new Date().getTime()
-        let sign = that.sign(ua, call, timestamp)
+        let sign = this.sign(ua, call, timestamp)
         let paramString = JSON.stringify({
           ua: ua,
           call: call,
@@ -289,7 +276,7 @@
           timestamp: timestamp
         })
 
-        that.$http.post('/khw/c/h', paramString).then(res => {
+        this.$http.post('/khw/c/h', paramString).then(res => {
           let data = res.data
           if (data.returnCode === '000000') {
             let loanAcctInfo = data.response
@@ -309,7 +296,6 @@
           }
         }).catch(err => {
           console.log(err)
-          that.toast(err.data.returnMsg)
         })
       }
     }

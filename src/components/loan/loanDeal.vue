@@ -63,7 +63,7 @@
       :modal="true"
       :closeOnClickModal="false">
       <div class="deal-success">
-        <img class="deal-success-gif" src="../../assets/img/deal-success-loan.gif" alt="">
+        <img class="deal-success-loan-gif" src="../../assets/img/deal-success-loan.gif" alt="">
         <div class="deal-success-txt">您的借款正在处理哦~请耐心等待</div>
       </div>
     </mt-popup>
@@ -74,7 +74,7 @@
   export default {
     data() {
       return {
-        popupVisible: false,
+        popupVisible: true,
         // 借款处理状态 0提交成功 1银行处理中 2借款成功 3借款失败
         status: 0,
         // 借款额度
@@ -182,9 +182,7 @@
           timestamp: timestamp
         })
 
-        // this.loading()
         this.$http.post('/khw/c/h', paramString).then(res => {
-          // this.closeLoading()
           that.popupVisible = true
           let data = res.data
           if (data.returnCode === '000000') {
@@ -213,6 +211,8 @@
             that.popupVisible = false
             that.toast(data.returnMsg, 1000)
           }
+        }).catch(err => {
+          console.log(err)
         })
       },
       // 更新账户汇总信息
@@ -257,7 +257,6 @@
           }
         }).catch(err => {
           console.log(err)
-          that.toast(err.data.returnMsg)
         })
       }
     }

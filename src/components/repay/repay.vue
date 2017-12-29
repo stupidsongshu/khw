@@ -66,7 +66,7 @@
         </div>
       </mt-tab-item>
       <mt-tab-item>
-        <div class="self-tab-item">
+        <div class="self-tab-item" @click="toMy">
           <img slot="icon" src="../../assets/img/bottom_icon_03_nor.png">
           <span>我的</span>
         </div>
@@ -132,7 +132,6 @@
 
       this.loading()
       this.$http.post('/khw/c/h', paramString).then(res => {
-        this.closeLoading()
         let data = res.data
         if (data.returnCode === '000000') {
           // 未还本金
@@ -145,9 +144,7 @@
           this.toast(data.returnMsg)
         }
       }).catch(err => {
-        this.closeLoading()
         console.log(err)
-        this.toast(err.data.returnMsg)
       })
     },
     methods: {
@@ -159,6 +156,12 @@
       },
       inAdvanceRepay() {
         this.$router.push('/repay/inAdvanceRepay')
+      },
+      // 进入贷前'我的'1
+      toMy() {
+        /* eslint-disable no-undef */
+        app.setLoanStatus(1)
+        this.app.toMy1()
       }
     }
   }
