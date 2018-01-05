@@ -6,7 +6,7 @@
       </div>
     </mt-header>
 
-    <div class="banner">
+    <!--<div class="banner">
       <div class="title">当前应还</div>
       <div class="amount">
         <span class="icon-money"></span> {{payOffAmtInt}}.<span class="decimals">{{payOffAmtFlo}}</span>
@@ -37,7 +37,9 @@
           <span class="icon-plan"></span>还款计划
         </div>
       </div>
-    </div>
+    </div>-->
+
+    <loan-plan :overflowScroll="false" :loanPlanList="loanPlanList"></loan-plan>
 
     <ul class="hint">
       <li>特别提示：</li>
@@ -45,7 +47,7 @@
       <li>2.扣款一旦成功，不可申请撤诉</li>
     </ul>
 
-    <mt-popup
+    <!--<mt-popup
       v-model="popupVisible"
       popup-transition="popup-fade"
       position="bottom"
@@ -56,7 +58,7 @@
       </div>
 
       <loan-plan :overflowScroll="true" :loanPlanList="loanPlanList"></loan-plan>
-    </mt-popup>
+    </mt-popup>-->
   </div>
 </template>
 
@@ -69,67 +71,123 @@
     },
     data() {
       return {
-        popupVisible: false,
-        // 单笔结清还款金额
-        payOffAmt: 0,
-        payOffAmtInt: 0,
-        payOffAmtFlo: 0,
-        transTime: '',
-        // 本金
-        payAmt: 0,
-        // 当前费用
-        insFeeTot: 0,
-        // 借记卡卡号
-        debitCardNo: '',
-        // 开户行
-        decardOpenBank: '',
-        // 中银交易订单号
-        paygateOrderId: '',
-        // 实际分期数
-        realInstalPeriod: 0,
+        // popupVisible: false,
+        // // 单笔结清还款金额
+        // payOffAmt: 0,
+        // payOffAmtInt: 0,
+        // payOffAmtFlo: 0,
+        // transTime: '',
+        // // 本金
+        // payAmt: 0,
+        // // 当前费用
+        // insFeeTot: 0,
+        // // 借记卡卡号
+        // debitCardNo: '',
+        // // 开户行
+        // decardOpenBank: '',
+        // // 中银交易订单号
+        // paygateOrderId: '',
+        // // 实际分期数
+        // realInstalPeriod: 0,
         // 还款计划
         loanPlanList: []
       }
     },
     created() {
-      let summaryInfo = this.$store.state.common.summaryInfo
-      this.debitCardNo = summaryInfo.debitCardNo.substring(summaryInfo.debitCardNo.length - 4)
-      this.decardOpenBank = summaryInfo.decardOpenBank
-
+      let that = this
       let commonParams = this.$store.state.common.commonParams
-      let ua = commonParams.ua
-      let call = 'Loan.cashExtractDetail'
-      let timestamp = new Date().getTime()
-      let sign = this.sign(ua, call, timestamp)
-      let paramString = JSON.stringify({
-        ua: ua,
-        call: call,
-        args: {
-          customerId: commonParams.args.customerId,
-          mobileNo: commonParams.args.mobileNo,
-          token: commonParams.args.token,
-          loanAcctNo: commonParams.args.loanAcctNo
-        },
-        sign: sign,
-        timestamp: timestamp
-      })
 
-      this.loading()
-      this.$http.post('/khw/c/h', paramString).then(res => {
-        let data = res.data
-        if (data.returnCode === '000000') {
-          let payOffAmtStr = data.response.payOffAmt.toString()
-          this.payOffAmt = data.response.payOffAmt
-          this.payOffAmtInt = payOffAmtStr.substring(0, payOffAmtStr.length - 2)
-          this.payOffAmtFlo = payOffAmtStr.substring(payOffAmtStr.length - 2)
-          this.transTime = data.response.transTime
-          this.payAmt = data.response.payAmt
-          this.insFeeTot = data.response.insFeeTot
-          this.paygateOrderId = data.response.payGateOrderId
-          this.realInstalPeriod = data.response.realInstalPeriod
-        } else {
-          this.toast(data.returnMsg)
-        }
+      // 单笔用款明细查询
+      function cashExtractDetail() {
+        return new Promise((resolve, reject) => {
+          // let summaryInfo = this.$store.state.common.summaryInfo
+          // this.debitCardNo = summaryInfo.debitCardNo.substring(summaryInfo.debitCardNo.length - 4)
+          // this.decardOpenBank = summaryInfo.decardOpenBank
+
+          let ua = commonParams.ua
+          let call = 'Loan.cashExtractDetail'
+          let timestamp = new Date().getTime()
+          that.getSign(call, timestamp).then(sign => {
+            let paramString = JSON.stringify({
+              ua: ua,
+              call: call,
+              args: {
+                customerId: commonParams.args.customerId,
+                mobileNo: commonParams.args.mobileNo,
+                token: commonParams.args.token,
+                loanAcctNo: commonParams.args.loanAcctNo
+              },
+              sign: sign,
+              timestamp: timestamp
+            })
+
+            that.loading()
+            that.$http.post('/khw/c/h', paramString).then(res => {
+              let data = res.data
+              if (data.returnCode === '000000') {
+                // let payOffAmtStr = data.response.payOffAmt.toString()
+                // that.payOffAmt = data.response.payOffAmt
+                // that.payOffAmtInt = payOffAmtStr.substring(0, payOffAmtStr.length - 2)
+                // that.payOffAmtFlo = payOffAmtStr.substring(payOffAmtStr.length - 2)
+                // that.transTime = data.response.transTime
+                // that.payAmt = data.response.payAmt
+                // that.insFeeTot = data.response.insFeeTot
+                // that.paygateOrderId = data.response.payGateOrderId
+                // that.realInstalPeriod = data.response.realInstalPeriod
+
+                resolve(data.response)
+              } else {
+                this.toast(data.returnMsg)
+                reject(data)
+              }
+            }).catch(err => {
+              console.log(err)
+            })
+          })
+        })
+      }
+
+      // 还款计划查询
+      function getrepayPlan(cashExtractDetailData) {
+        let ua = commonParams.ua
+        let call = 'Loan.repayPlan'
+        let timestamp = new Date().getTime()
+        that.getSign(call, timestamp).then(sign => {
+          let paramString = JSON.stringify({
+            ua: ua,
+            call: call,
+            args: {
+              customerId: commonParams.args.customerId,
+              mobileNo: commonParams.args.mobileNo,
+              token: commonParams.args.token,
+              acctNo: commonParams.args.loanAcctNo,
+              queryBegNum: 1,
+              queryCnt: cashExtractDetailData.realInstalPeriod,
+              dealFlg: 'B',
+              paymentAmount: cashExtractDetailData.payOffAmt,
+              installPeriod: cashExtractDetailData.realInstalPeriod,
+              paygateOrderId: cashExtractDetailData.payGateOrderId
+            },
+            sign: sign,
+            timestamp: timestamp
+          })
+
+          that.loading()
+          that.$http.post('/khw/c/h', paramString).then(res => {
+            let data = res.data
+            if (data.returnCode === '000000') {
+              that.loanPlanList = data.response.list.splice(0, cashExtractDetailData.realInstalPeriod)
+            } else {
+              that.toast(data.returnMsg)
+            }
+          }).catch(err => {
+            console.log(err)
+          })
+        })
+      }
+
+      cashExtractDetail().then(data => {
+        getrepayPlan(data)
       }).catch(err => {
         console.log(err)
       })
@@ -137,53 +195,56 @@
     methods: {
       back() {
         this.goback()
-      },
-      showRepayPlan() {
-        let commonParams = this.$store.state.common.commonParams
-        let ua = commonParams.ua
-        let call = 'Loan.repayPlan'
-        let timestamp = new Date().getTime()
-        let sign = this.sign(ua, call, timestamp)
-        let paramString = JSON.stringify({
-          ua: ua,
-          call: call,
-          args: {
-            customerId: commonParams.args.customerId,
-            mobileNo: commonParams.args.mobileNo,
-            token: commonParams.args.token,
-            acctNo: commonParams.args.loanAcctNo,
-            queryBegNum: 1,
-            queryCnt: this.realInstalPeriod,
-            dealFlg: 'B',
-            paymentAmount: this.payOffAmt,
-            installPeriod: this.realInstalPeriod,
-            paygateOrderId: this.paygateOrderId
-          },
-          sign: sign,
-          timestamp: timestamp
-        })
-
-        this.loading()
-        this.$http.post('/khw/c/h', paramString).then(res => {
-          let data = res.data
-          if (data.returnCode === '000000') {
-            this.popupVisible = true
-            this.loanPlanList = data.response.list.splice(0, this.realInstalPeriod)
-          } else {
-            this.toast(data.returnMsg)
-          }
-        }).catch(err => {
-          console.log(err)
-        })
-      },
-      ensure() {
-        this.popupVisible = false
       }
+      // showRepayPlan() {
+      //   let that = this
+      //
+      //   let commonParams = this.$store.state.common.commonParams
+      //   let ua = commonParams.ua
+      //   let call = 'Loan.repayPlan'
+      //   let timestamp = new Date().getTime()
+      //   this.getSign(call, timestamp).then(sign => {
+      //     let paramString = JSON.stringify({
+      //       ua: ua,
+      //       call: call,
+      //       args: {
+      //         customerId: commonParams.args.customerId,
+      //         mobileNo: commonParams.args.mobileNo,
+      //         token: commonParams.args.token,
+      //         acctNo: commonParams.args.loanAcctNo,
+      //         queryBegNum: 1,
+      //         queryCnt: that.realInstalPeriod,
+      //         dealFlg: 'B',
+      //         paymentAmount: that.payOffAmt,
+      //         installPeriod: that.realInstalPeriod,
+      //         paygateOrderId: that.paygateOrderId
+      //       },
+      //       sign: sign,
+      //       timestamp: timestamp
+      //     })
+      //
+      //     that.loading()
+      //     that.$http.post('/khw/c/h', paramString).then(res => {
+      //       let data = res.data
+      //       if (data.returnCode === '000000') {
+      //         that.popupVisible = true
+      //         that.loanPlanList = data.response.list.splice(0, that.realInstalPeriod)
+      //       } else {
+      //         that.toast(data.returnMsg)
+      //       }
+      //     }).catch(err => {
+      //       console.log(err)
+      //     })
+      //   })
+      // },
+      // ensure() {
+      //   this.popupVisible = false
+      // }
     }
   }
 </script>
 
-<style lang="stylus" rel="stylesheet/stylus">
+<!--<style lang="stylus" rel="stylesheet/stylus">
   @import '../../assets/css/base.styl'
   @import '../../assets/css/loanRepay.styl'
 
@@ -209,4 +270,4 @@
       color: #fff
       border-radius: 4px
       background-color: main-color
-</style>
+</style>-->

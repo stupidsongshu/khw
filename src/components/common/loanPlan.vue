@@ -81,7 +81,7 @@
         border: none
       .plan-detail
         line-height: 24px
-        font-size: 12px; /*no*/
+        font-size: 13px;
       .plan-amount
         color: main-color
 

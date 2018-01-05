@@ -1,6 +1,6 @@
 <template>
   <div class="loan-deal">
-    <mt-header fixed class="header" title="卡还王"></mt-header>
+    <mt-header fixed class="header" title="借款"></mt-header>
 
     <div class="deal-banner">
       <div class="status" v-show="status === 0">提交成功</div>
@@ -153,6 +153,18 @@
     },
     methods: {
       checkLoanDeal() {
+        let cashExtract = this.$store.state.common.cashExtract
+        console.log(cashExtract.amount, cashExtract.merchantOrderId)
+        if (cashExtract.amount && cashExtract.merchantOrderId) {
+          // 正常情况(有单笔交易信息): 不断更新单笔交易结果接口(Loan.singleTrans)
+          this.updateLoanDealStatus()
+        } else {
+          // 异常情况(无单笔交易信息): 不断更新账户汇总信息(Loan.loanAcctInfo)
+          this.updateLoanAcctInfo()
+        }
+      },
+      // 更新借款处理结果状态
+      updateLoanDealStatus() {
         let that = this
 
         let cashExtract = this.$store.state.common.cashExtract
@@ -162,57 +174,58 @@
         let ua = commonParams.ua
         let call = 'Loan.singleTrans'
         let timestamp = new Date().getTime()
-        let sign = this.sign(ua, call, timestamp)
-        let paramString = JSON.stringify({
-          ua: ua,
-          call: call,
-          args: {
-            customerId: commonParams.args.customerId,
-            mobileNo: commonParams.args.mobileNo,
-            token: commonParams.args.token,
-            loanAcctNo: commonParams.args.loanAcctNo,
-            // 单笔交易金额(交易后服务器返回)
-            returnAmt: cashExtract.amount,
-            // 单笔交易订单号(交易后服务器返回)
-            oriMerchantOrderId: cashExtract.merchantOrderId
-            // 单笔交易交易时间(交易后服务器返回)
-            // oriPayTime:
-          },
-          sign: sign,
-          timestamp: timestamp
-        })
+        this.getSign(call, timestamp).then(sign => {
+          let paramString = JSON.stringify({
+            ua: ua,
+            call: call,
+            args: {
+              customerId: commonParams.args.customerId,
+              mobileNo: commonParams.args.mobileNo,
+              token: commonParams.args.token,
+              loanAcctNo: commonParams.args.loanAcctNo,
+              // 单笔交易金额(交易后服务器返回)
+              returnAmt: cashExtract.amount,
+              // 单笔交易订单号(交易后服务器返回)
+              oriMerchantOrderId: cashExtract.merchantOrderId
+              // 单笔交易交易时间(交易后服务器返回)
+              // oriPayTime:
+            },
+            sign: sign,
+            timestamp: timestamp
+          })
 
-        this.$http.post('/khw/c/h', paramString).then(res => {
-          that.popupVisible = true
-          let data = res.data
-          if (data.returnCode === '000000') {
-            let res = data.response
-            // transStus 0成功 1失败 2处理中 9订单不存在
-            if (res.transStus === 0) {
-              this.status = 2
-              this.toast('借款成功')
-            } else if (res.transStus === 1) {
-              this.status = 3
-              this.toast('借款失败，请稍后重试')
-              this.$router.push('/khw')
-            } else if (res.transStus === 2) {
-              this.status = 1
-            } else if (res.transStus === 9) {
-              this.toast('订单不存在')
-            }
+          that.$http.post('/khw/c/h', paramString).then(res => {
+            that.popupVisible = true
+            let data = res.data
+            if (data.returnCode === '000000') {
+              let res = data.response
+              // transStus 0成功 1失败 2处理中 9订单不存在
+              if (res.transStus === 0) {
+                that.status = 2
+                that.toast('借款成功')
+              } else if (res.transStus === 1) {
+                that.status = 3
+                that.toast('借款失败，请稍后重试')
+                that.$router.push('/khw')
+              } else if (res.transStus === 2) {
+                that.status = 1
+              } else if (res.transStus === 9) {
+                that.toast('订单不存在')
+              }
 
-            // 返回处理结果后
-            if (res.transStus !== 2) {
+              // 返回处理结果后
+              if (res.transStus !== 2) {
+                that.popupVisible = false
+                that.isRefresh = false
+                that.updateLoanAcctInfo()
+              }
+            } else {
               that.popupVisible = false
-              that.isRefresh = false
-              that.updateLoanAcctInfo()
+              that.toast(data.returnMsg, 1000)
             }
-          } else {
-            that.popupVisible = false
-            that.toast(data.returnMsg, 1000)
-          }
-        }).catch(err => {
-          console.log(err)
+          }).catch(err => {
+            console.log(err)
+          })
         })
       },
       // 更新账户汇总信息
@@ -223,40 +236,41 @@
         let ua = commonParams.ua
         let call = 'Loan.loanAcctInfo'
         let timestamp = new Date().getTime()
-        let sign = that.sign(ua, call, timestamp)
-        let paramString = JSON.stringify({
-          ua: ua,
-          call: call,
-          args: {
-            customerId: commonParams.args.customerId,
-            mobileNo: commonParams.args.mobileNo,
-            token: commonParams.args.token,
-            loanAcctNo: commonParams.args.loanAcctNo
-          },
-          sign: sign,
-          timestamp: timestamp
-        })
+        this.getSign(call, timestamp).then(sign => {
+          let paramString = JSON.stringify({
+            ua: ua,
+            call: call,
+            args: {
+              customerId: commonParams.args.customerId,
+              mobileNo: commonParams.args.mobileNo,
+              token: commonParams.args.token,
+              loanAcctNo: commonParams.args.loanAcctNo
+            },
+            sign: sign,
+            timestamp: timestamp
+          })
 
-        that.$http.post('/khw/c/h', paramString).then(res => {
-          let data = res.data
-          if (data.returnCode === '000000') {
-            let loanAcctInfo = data.response
-            // 更新汇总信息
-            that.$store.commit('summaryInfoSave', loanAcctInfo)
-            // 5秒倒计时
-            let timer = setInterval(function() {
-              that.restTime --
-              if (that.restTime === 0) {
-                clearInterval(timer)
-                that.restTime = 5
-                that.checkSummaryInfo()
-              }
-            }, 1000)
-          } else {
-            that.toast(data.returnMsg)
-          }
-        }).catch(err => {
-          console.log(err)
+          that.$http.post('/khw/c/h', paramString).then(res => {
+            let data = res.data
+            if (data.returnCode === '000000') {
+              let loanAcctInfo = data.response
+              // 更新汇总信息
+              that.$store.commit('summaryInfoSave', loanAcctInfo)
+              // 5秒倒计时
+              let timer = setInterval(function() {
+                that.restTime --
+                if (that.restTime === 0) {
+                  clearInterval(timer)
+                  that.restTime = 5
+                  that.checkSummaryInfo()
+                }
+              }, 1000)
+            } else {
+              that.toast(data.returnMsg)
+            }
+          }).catch(err => {
+            console.log(err)
+          })
         })
       }
     }

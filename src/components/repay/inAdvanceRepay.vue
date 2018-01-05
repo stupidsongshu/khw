@@ -65,6 +65,8 @@
       }
     },
     mounted() {
+      let that = this
+
       let summaryInfo = this.$store.state.common.summaryInfo
       this.totalLoanAmt = summaryInfo.totalLoanAmt
       this.debitCardNo = summaryInfo.debitCardNo.substring(summaryInfo.debitCardNo.length - 4)
@@ -79,44 +81,7 @@
       let ua = commonParams.ua
       let call = 'Loan.cashExtractDetail'
       let timestamp = new Date().getTime()
-      let sign = this.sign(ua, call, timestamp)
-      let paramString = JSON.stringify({
-        ua: ua,
-        call: call,
-        args: {
-          customerId: commonParams.args.customerId,
-          mobileNo: commonParams.args.mobileNo,
-          token: commonParams.args.token,
-          loanAcctNo: commonParams.args.loanAcctNo
-        },
-        sign: sign,
-        timestamp: timestamp
-      })
-
-      this.loading()
-      this.$http.post('/khw/c/h', paramString).then(res => {
-        let data = res.data
-        if (data.returnCode === '000000') {
-          this.transTime = data.response.transTime
-          this.payAmt = data.response.payAmt
-        } else {
-          this.toast(data.returnMsg)
-        }
-      }).catch(err => {
-        console.log(err)
-      })
-    },
-    methods: {
-      back() {
-        this.goback()
-      },
-      inAdvanceRepayBtn() {
-        let summaryInfo = this.$store.state.common.summaryInfo
-        let commonParams = this.$store.state.common.commonParams
-        let ua = commonParams.ua
-        let call = 'Loan.cashRepay'
-        let timestamp = new Date().getTime()
-        let sign = this.sign(ua, call, timestamp)
+      this.getSign(call, timestamp).then(sign => {
         let paramString = JSON.stringify({
           ua: ua,
           call: call,
@@ -124,28 +89,69 @@
             customerId: commonParams.args.customerId,
             mobileNo: commonParams.args.mobileNo,
             token: commonParams.args.token,
-            loanAcctNo: commonParams.args.loanAcctNo,
-            returnType: 4,
-            // 还款金额
-            amount: summaryInfo.realTotalAmount
+            loanAcctNo: commonParams.args.loanAcctNo
           },
           sign: sign,
           timestamp: timestamp
         })
 
-        this.loading()
-        this.$http.post('/khw/c/h', paramString).then(res => {
+        that.loading()
+        that.$http.post('/khw/c/h', paramString).then(res => {
           let data = res.data
           if (data.returnCode === '000000') {
-            // 更新汇总信息
-            this.$store.commit('summaryInfoSave', data.response.loanAcctInfo)
-            this.$store.commit('cashRepaySave', data.response.cashRepay)
-            this.checkSummaryInfo()
+            that.transTime = data.response.transTime
+            that.payAmt = data.response.payAmt
           } else {
-            this.toast(data.returnMsg)
+            that.toast(data.returnMsg)
           }
         }).catch(err => {
           console.log(err)
+        })
+      })
+    },
+    methods: {
+      back() {
+        this.goback()
+      },
+      inAdvanceRepayBtn() {
+        let that = this
+
+        let summaryInfo = this.$store.state.common.summaryInfo
+        let commonParams = this.$store.state.common.commonParams
+        let ua = commonParams.ua
+        let call = 'Loan.cashRepay'
+        let timestamp = new Date().getTime()
+        this.getSign(call, timestamp).then(sign => {
+          let paramString = JSON.stringify({
+            ua: ua,
+            call: call,
+            args: {
+              customerId: commonParams.args.customerId,
+              mobileNo: commonParams.args.mobileNo,
+              token: commonParams.args.token,
+              loanAcctNo: commonParams.args.loanAcctNo,
+              returnType: 4,
+              // 还款金额
+              amount: summaryInfo.realTotalAmount
+            },
+            sign: sign,
+            timestamp: timestamp
+          })
+
+          that.loading()
+          that.$http.post('/khw/c/h', paramString).then(res => {
+            let data = res.data
+            if (data.returnCode === '000000') {
+              // 更新汇总信息
+              that.$store.commit('summaryInfoSave', data.response.loanAcctInfo)
+              that.$store.commit('cashRepaySave', data.response.cashRepay)
+              that.checkSummaryInfo()
+            } else {
+              that.toast(data.returnMsg)
+            }
+          }).catch(err => {
+            console.log(err)
+          })
         })
       }
     }

@@ -101,6 +101,8 @@
       }
     },
     created() {
+      let that = this
+
       let summaryInfo = this.$store.state.common.summaryInfo
       if (summaryInfo) {
         // 逾期状态 1逾期 2正常
@@ -111,40 +113,42 @@
         }
       }
 
+      console.log('enter repay page')
       // 单笔用款明细查询
       let commonParams = this.$store.state.common.commonParams
       let ua = commonParams.ua
       let call = 'Loan.cashExtractDetail'
       let timestamp = new Date().getTime()
-      let sign = this.sign(ua, call, timestamp)
-      let paramString = JSON.stringify({
-        ua: ua,
-        call: call,
-        args: {
-          customerId: commonParams.args.customerId,
-          mobileNo: commonParams.args.mobileNo,
-          token: commonParams.args.token,
-          loanAcctNo: commonParams.args.loanAcctNo
-        },
-        sign: sign,
-        timestamp: timestamp
-      })
+      this.getSign(call, timestamp).then(sign => {
+        let paramString = JSON.stringify({
+          ua: ua,
+          call: call,
+          args: {
+            customerId: commonParams.args.customerId,
+            mobileNo: commonParams.args.mobileNo,
+            token: commonParams.args.token,
+            loanAcctNo: commonParams.args.loanAcctNo
+          },
+          sign: sign,
+          timestamp: timestamp
+        })
 
-      this.loading()
-      this.$http.post('/khw/c/h', paramString).then(res => {
-        let data = res.data
-        if (data.returnCode === '000000') {
-          // 未还本金
-          let remainAmt = data.response.remainAmt.toString()
-          this.remainAmtInt = remainAmt.substring(0, remainAmt.length - 2)
-          this.remainAmtFlo = remainAmt.substring(remainAmt.length - 2)
-          // 申请时间
-          this.transTime = data.response.transTime
-        } else {
-          this.toast(data.returnMsg)
-        }
-      }).catch(err => {
-        console.log(err)
+        that.loading()
+        that.$http.post('/khw/c/h', paramString).then(res => {
+          let data = res.data
+          if (data.returnCode === '000000') {
+            // 未还本金
+            let remainAmt = data.response.remainAmt.toString()
+            that.remainAmtInt = remainAmt.substring(0, remainAmt.length - 2)
+            that.remainAmtFlo = remainAmt.substring(remainAmt.length - 2)
+            // 申请时间
+            that.transTime = data.response.transTime
+          } else {
+            that.toast(data.returnMsg)
+          }
+        }).catch(err => {
+          console.log(err)
+        })
       })
     },
     methods: {
@@ -157,7 +161,7 @@
       inAdvanceRepay() {
         this.$router.push('/repay/inAdvanceRepay')
       },
-      // 进入贷前'我的'1
+      // 进入贷前'我的'
       toMy() {
         /* eslint-disable no-undef */
         app.setLoanStatus(1)

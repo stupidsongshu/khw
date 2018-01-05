@@ -19,7 +19,7 @@
       <div class="loan-purpose-wrapper">
         <span class="loan-purpose-name color999">贷款用途：</span>
         <div class="loan-purpose-select" @click="selectPurpose">
-          <input type="text" placeholder="请选择" readonly v-model="purpose">
+          <input type="text" placeholder="请选择" v-model="purpose" readonly onfocus="this.blur()">
           <i class="fa fa-angle-right color999"></i>
         </div>
       </div>
@@ -56,19 +56,6 @@
         </div>
       </div>
 
-      <!--<div class="form">
-        <div class="item">
-          <div class="name">验证码</div>
-          <div class="code-input">
-            <input type="number" placeholder="请输入短信验证码" v-model="vcode" oninput=" if(value.length>6){value = value.slice(0,6)}">
-          </div>
-          <div class="code-get">
-            <button class="code-btn" v-if="!hasGetCode" @click="getCode">发送验证码</button>
-            <button class="code-btn" v-if="hasGetCode">{{time}}s后重新获取</button>
-          </div>
-        </div>
-      </div>-->
-
       <div class="loan-item">
         <div class="agreement-wrapper">
           <input type="checkbox" id="agreementInput" :checked="checked" @click="toggleAgree">
@@ -79,7 +66,6 @@
       </div>
     </div>
 
-    <!--<div class="repayment-title">还款攻略</div>-->
     <div class="loan-btn" style="margin: 30px 0;">
       <mt-button class="btn" @click="loanBtn" :disabled="!checked">立即借款</mt-button>
     </div>
@@ -144,6 +130,10 @@
       }
     },
     created() {
+      let that = this
+
+      let commonParams = this.$store.state.common.commonParams
+
       // 本金
       let loanLimit = this.loanLimit
       // 分期数
@@ -186,18 +176,22 @@
         if (month1 < 10) {
           month1 = '0' + month1
         }
+        if (day1 < 10) {
+          day1 = '0' + day1
+        }
 
         return year1 + '' + month1 + '' + day1
       }
 
+      // 还款试算
       let year = new Date().getFullYear()
       let month = new Date().getMonth()
       let date = new Date().getDate()
       for (var i = 0; i < loanDuration; i++) {
         // 分期本金
         let prePrin = (loanLimit * 100) / loanDuration
-        // 分期利息
-        let preInt = prePrin * monthRate
+        // 月利率费
+        let preFee = prePrin * monthRate
         // 还款时间
         if (parseInt(month) > 12) {
           year = parseInt(year) + 1
@@ -216,11 +210,43 @@
           paymentPeriod: i + 1,
           prePayDay: prePayDay,
           prePrin: prePrin,
-          preInt: preInt,
+          preFee: preFee,
           // 还款金额
-          preAmt: prePrin + preInt
+          preAmt: prePrin + preFee
         })
       }
+
+      // 收款银行
+      let ua = commonParams.ua
+      let call = 'Loan.creditCard'
+      let timestamp = new Date().getTime().toString()
+      this.getSign(call, timestamp).then(sign => {
+        let paramString = JSON.stringify({
+          ua: ua,
+          call: call,
+          args: {
+            customerId: commonParams.args.customerId,
+            mobileNo: commonParams.args.mobileNo,
+            token: commonParams.args.token,
+            loanAcctNo: commonParams.args.loanAcctNo
+          },
+          sign: sign,
+          timestamp: timestamp
+        })
+        that.loading()
+        that.$http.post('/khw/c/h', paramString).then(res => {
+          let data = res.data
+          if (data.returnCode === '000000') {
+            let dataS = data.response
+            if (dataS.creditcardNo) {
+              that.creditcardNo = dataS.creditcardNo.substring(dataS.creditcardNo.length - 4)
+            }
+            that.openBank = dataS.openBank
+          }
+        }).catch(err => {
+          console.log(err)
+        })
+      })
 
       // 借款用途随机排序
       this.loanPurposeValues = [
@@ -274,38 +300,6 @@
         loanPurpose: ' '
       })
       this.loanPurposeSlot[0].values = this.loanPurposeValues
-
-      // 收款银行
-      let commonParams = this.$store.state.common.commonParams
-      let ua = commonParams.ua
-      let call = 'Loan.creditCard'
-      let timestamp = new Date().getTime().toString()
-      let sign = this.getSign(call, timestamp)
-      let paramString = JSON.stringify({
-        ua: ua,
-        call: call,
-        args: {
-          customerId: commonParams.args.customerId,
-          mobileNo: commonParams.args.mobileNo,
-          token: commonParams.args.token,
-          loanAcctNo: commonParams.args.loanAcctNo
-        },
-        sign: sign,
-        timestamp: timestamp
-      })
-      this.loading()
-      this.$http.post('/khw/c/h', paramString).then(res => {
-        let data = res.data
-        if (data.returnCode === '000000') {
-          let dataS = data.response
-          if (dataS.creditcardNo) {
-            this.creditcardNo = dataS.creditcardNo.substring(dataS.creditcardNo.length - 4)
-          }
-          this.openBank = dataS.openBank
-        }
-      }).catch(err => {
-        console.log(err)
-      })
     },
     methods: {
       toggleAgree() {
@@ -316,19 +310,11 @@
           this.vcode = this.vcode.substr(0, 6)
         }
 
-        // 1
-        // let bool = this.onlyNumber(val)
-        // if (!bool) {
-        //   this.vcode = ''
-        // }
-
-        // 2
         if (!/^\d+$/g.test(val)) {
           this.vcode = ''
         }
       },
       write1(e, val) {
-        // console.log(val.length)
         if (val.length > 6) {
           console.log(this.vcode)
           this.vcode = this.vcode.substr(0, 6)
@@ -397,42 +383,44 @@
         let ua = commonParams.ua
         let call = 'Boccfc.dyanmicPwd'
         let timestamp = new Date().getTime()
-        // let sign = this.sign(ua, call, timestamp)
-        let sign = that.getSign(call, timestamp)
-        let paramString = JSON.stringify({
-          ua: ua,
-          call: call,
-          args: {
-            customerId: commonParams.args.customerId,
-            mobileNo: commonParams.args.mobileNo,
-            token: commonParams.args.token,
-            acctNo: commonParams.args.loanAcctNo
-          },
-          sign: sign,
-          timestamp: timestamp
-        })
+        this.getSign(call, timestamp).then(sign => {
+          let paramString = JSON.stringify({
+            ua: ua,
+            call: call,
+            args: {
+              customerId: commonParams.args.customerId,
+              mobileNo: commonParams.args.mobileNo,
+              token: commonParams.args.token,
+              acctNo: commonParams.args.loanAcctNo
+            },
+            sign: sign,
+            timestamp: timestamp
+          })
 
-        this.loading()
-        this.$http.post('/khw/c/h', paramString).then(res => {
-          if (res.data.response === '000000') {
-            that.hasGetCode = true
-            let timer = setInterval(() => {
-              that.time --
-              if (that.time === 0) {
-                that.hasGetCode = false
-                that.time = 60
-                clearInterval(timer)
-              }
-            }, 1000)
-          } else {
-            that.toast(res.data.returnMsg)
-          }
-        }).catch(err => {
-          console.log(err)
+          that.loading()
+          that.$http.post('/khw/c/h', paramString).then(res => {
+            if (res.data.response === '000000') {
+              that.hasGetCode = true
+              let timer = setInterval(() => {
+                that.time --
+                if (that.time === 0) {
+                  that.hasGetCode = false
+                  that.time = 60
+                  clearInterval(timer)
+                }
+              }, 1000)
+            } else {
+              that.toast(res.data.returnMsg)
+            }
+          }).catch(err => {
+            console.log(err)
+          })
         })
       },
       // 借款
       loanBtn() {
+        let that = this
+
         if (this.purpose === '') {
           this.toast('请选择贷款用途')
           return
@@ -442,44 +430,43 @@
           return
         }
 
-        let that = this
         let commonParams = this.$store.state.common.commonParams
         let ua = commonParams.ua
         let call = 'Loan.cashExtract'
         let timestamp = new Date().getTime()
-        // let sign = this.sign(ua, call, timestamp)
-        let sign = that.getSign(call, timestamp)
-        let paramString = JSON.stringify({
-          ua: ua,
-          call: call,
-          args: {
-            customerId: commonParams.args.customerId,
-            mobileNo: commonParams.args.mobileNo,
-            token: commonParams.args.token,
-            loanAcctNo: commonParams.args.loanAcctNo,
-            amount: this.$store.state.loan.loan_limit,
-            instalPeriod: this.$store.state.loan.loan_duration,
-            comUseType: this.loanUseId,
-            dynamicPwd: this.vcode
-          },
-          sign: sign,
-          timestamp: timestamp
-        })
+        this.getSign(call, timestamp).then(sign => {
+          let paramString = JSON.stringify({
+            ua: ua,
+            call: call,
+            args: {
+              customerId: commonParams.args.customerId,
+              mobileNo: commonParams.args.mobileNo,
+              token: commonParams.args.token,
+              loanAcctNo: commonParams.args.loanAcctNo,
+              amount: that.$store.state.loan.loan_limit,
+              instalPeriod: that.$store.state.loan.loan_duration,
+              comUseType: that.loanUseId,
+              dynamicPwd: that.vcode
+            },
+            sign: sign,
+            timestamp: timestamp
+          })
 
-        this.loading()
-        this.$http.post('/khw/c/h', paramString).then(res => {
-          let data = res.data
-          if (data.returnCode === '000000') {
-            let dataS = data.response
-            // 更新汇总信息
-            that.$store.commit('summaryInfoSave', dataS.loanAcctInfo)
-            that.$store.commit('cashExtractSave', dataS.cashExtract)
-            that.checkSummaryInfo()
-          } else {
-            that.toast(data.returnMsg)
-          }
-        }).catch(err => {
-          console.log(err)
+          that.loading()
+          that.$http.post('/khw/c/h', paramString).then(res => {
+            let data = res.data
+            if (data.returnCode === '000000') {
+              let dataS = data.response
+              // 更新汇总信息
+              that.$store.commit('summaryInfoSave', dataS.loanAcctInfo)
+              that.$store.commit('cashExtractSave', dataS.cashExtract)
+              that.checkSummaryInfo()
+            } else {
+              that.toast(data.returnMsg)
+            }
+          }).catch(err => {
+            console.log(err)
+          })
         })
       }
     }
@@ -576,6 +563,7 @@
         display: flex
         padding: 0 15px
         line-height: 40px
+        border-bottom: 1px solid #e3e3e3; /*no*/
         .item-l
           display: flex
           width: 50%
@@ -614,6 +602,7 @@
         display: flex
         padding: 0 15px
         line-height: 40px
+        border-bottom: 1px solid #e3e3e3; /*no*/
         .code-name
           flex-basis: 80px
           width: 80px
@@ -634,11 +623,6 @@
             border: none
             border-left: 1px solid main-color; /*no*/
             background-color: transparent
-
-    .repayment-title
-      line-height: 44px
-      text-align: center
-      color: main-color
 
     .picker-nav
       display: flex

@@ -27,25 +27,27 @@
       </div>
     </div>
 
-    <div class="range">
-      <mt-range v-model="loanLimit" :min="loanMin" :max="loanMax" :step="100" :bar-height="3"></mt-range>
+    <div class="index-btn-group-wrapper">
+      <div class="range">
+        <mt-range v-model="loanLimit" :min="loanMin" :max="loanMax" :step="100" :bar-height="3"></mt-range>
 
-      <div class="clearfix range-num">
-        <span class="pull-left">{{loanMin}}</span>
-        <span class="pull-right">{{loanMax}}</span>
+        <div class="clearfix range-num">
+          <span class="pull-left">{{loanMin}}</span>
+          <span class="pull-right">{{loanMax}}</span>
+        </div>
+
+        <div class="select-month">
+          <mt-button :class="{active: loanDuration === 6}" @click="selectLoanDuration(6)">6个月</mt-button>
+          <mt-button :class="{active: loanDuration === 12}" @click="selectLoanDuration(12)">12个月</mt-button>
+        </div>
       </div>
 
-      <div class="select-month">
-        <mt-button :class="{active: loanDuration === 6}" @click="selectLoanDuration(6)">6个月</mt-button>
-        <mt-button :class="{active: loanDuration === 12}" @click="selectLoanDuration(12)">12个月</mt-button>
+      <div class="loan-btn">
+        <mt-button class="btn" @click="loan">立即借款</mt-button>
       </div>
-    </div>
 
-    <div class="loan-btn">
-      <mt-button class="btn" @click="loan">立即借款</mt-button>
+      <div class="footer-txt">"卡还王"由麦广互娱与中银消费金融联合打造</div>
     </div>
-
-    <div class="footer-txt">"卡还王"由麦广互娱与中银消费金融联合打造</div>
 
     <mt-tabbar fixed v-if="deviceType === 'android'">
       <mt-tab-item id="loan">
@@ -82,7 +84,20 @@
         this.$store.commit('loan_duration_save', time)
       },
       loan() {
-        this.$router.replace('/loan')
+        let loanAcctInfo = this.$store.state.common.summaryInfo
+
+        // 判断应用初始化获取账户汇总信息是否成功(通过中银贷款账号是否存在进行判断)，获取失败后点击按钮提示用户
+        if (loanAcctInfo.loanAcctNo) {
+          if (loanAcctInfo.creLineStus === '90') {
+            this.$router.push('/inactivated')
+          } else {
+            this.$router.replace('/loan')
+          }
+        } else {
+          this.toast('获取数据失败，请稍后重试')
+        }
+
+        // this.$router.replace('/loan')
       },
       // 进入贷前'我的'
       toMy() {
@@ -121,10 +136,6 @@
       activeTabIndex() {
         return this.$store.state.common.activeTabIndex
       }
-    },
-    beforeRouteEnter(to, from, next) {
-      next(vm => {
-      })
     }
   }
 </script>
@@ -147,11 +158,14 @@
 </style>
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="stylus">
+  .index
+    width: 100%
+    height: 100%
   .bg-header
     position: relative
     width: 100%
     height: 238px
-    font-size: 20px
+    font-size: 18px
     background-image: url("../../assets/img/bg-header.png")
     background-repeat: no-repeat
     background-size: 100% 238px
@@ -195,37 +209,43 @@
           .loan-amount-title
             margin-top: 10px
             font-size: 14px
-
-  .range
+  .index-btn-group-wrapper
+    position: absolute
+    left: 0
+    bottom: 54px
     width: 100%
-    margin-top: 55px
-    padding: 0 15px
-    .range-num
+    .range
       width: 100%
-      color: #999
-      font-size: 13px
-    .select-month
-      display: flex
-      justify-content: space-between
-      width: 100%
-      margin: 55px 0 46px 0
-      button
-        width: 88px
-        height: 30px
+      margin-top: 55px
+      padding: 0 15px
+      .range-num
+        width: 100%
+        margin-top: 14px
         color: #999
-        font-size: 15px
-        border: 1px solid #999
-        background-color: #fff
-        &.active
-          color: #fff
-          border: none
-          background-color: #daab5b
+        font-size: 13px
+      .select-month
+        display: flex
+        justify-content: space-between
+        width: 100%
+        /*margin: 55px 0 46px 0*/
+        margin: 40px 0 46px 0
+        button
+          width: 46%
+          height: 30px
+          color: #999
+          font-size: 15px
+          border: 1px solid #999
+          background-color: #fff
+          &.active
+            color: #fff
+            border: none
+            background-color: #daab5b
 
-  .footer-txt
-    line-height: 44px
-    text-align: center
-    color: #999
-    font-size: 12px
+    .footer-txt
+      line-height: 44px
+      text-align: center
+      color: #999
+      font-size: 12px
 
   .mint-tabbar
     height: 54px

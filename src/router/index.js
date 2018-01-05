@@ -17,6 +17,7 @@ import { Toast } from 'mint-ui'
 import Khw from '@/components/loan/khw'
 import Loan from '@/components/loan/loan'
 import LoanDeal from '@/components/loan/loanDeal'
+import Inactivated from '@/components/loan/inactivated'
 // 还款
 import Repay from '@/components/repay/repay'
 import OnTimeRepay from '@/components/repay/onTimeRepay'
@@ -139,6 +140,11 @@ const routes = [
     path: '/loanDeal',
     name: 'loanDeal',
     component: LoanDeal
+  },
+  {
+    path: '/inactivated',
+    name: 'inactivated',
+    component: Inactivated
   },
   // 还款
   {
@@ -378,29 +384,11 @@ router.beforeEach((to, from, next) => {
   //   next()
   // }
 
-  // fix ios footer只在贷后首页和还款页面显示
-  if (deviceType === 'iphone') {
-    if (window.webkit !== undefined && window.webkit.messageHandlers !== undefined) {
-      try {
-        if (to.path === '/' || to.path === 'repay') {
-          window.webkit.messageHandlers.footerShow.postMessage({
-            show: true
-          })
-        } else {
-          window.webkit.messageHandlers.footerShow.postMessage({
-            show: false
-          })
-        }
-      } catch (err) {
-        console.log(err)
-      }
-    } else {
-      console.log('调用ios接口失败！')
-    }
-  }
+  // 用户借还款状态: 0借款 1还款
+  let loanReapyStatus = store.state.common.userStatus
 
   let isNet = window.navigator.onLine
-  console.log('deviceType：' + deviceType, ' 网络监测：' + isNet)
+  console.log('deviceType：' + deviceType, '; 网络监测：' + isNet, '; 状态： ' + loanReapyStatus)
   if (!isNet) {
     Toast({
       message: '请打开网络',
@@ -408,10 +396,36 @@ router.beforeEach((to, from, next) => {
     })
     next(false)
   } else {
+    // fix ios footer只在贷后首页和还款页面显示
+    if (deviceType === 'iphone') {
+      if (window.webkit !== undefined && window.webkit.messageHandlers !== undefined) {
+        try {
+          if (to.path === '/' || to.path === '/repay') {
+            window.webkit.messageHandlers.footerShow.postMessage({
+              show: true,
+              loanReapyStatus: loanReapyStatus
+            })
+          } else {
+            window.webkit.messageHandlers.footerShow.postMessage({
+              show: false,
+              loanReapyStatus: loanReapyStatus
+            })
+          }
+        } catch (err) {
+          console.log(err)
+        }
+      } else {
+        console.log('调用ios接口失败！')
+      }
+    }
+
     next()
   }
 })
-// router.afterEach((to, from, next) => {
-//   document.title = to.name
-// })
+router.afterEach((to, from, next) => {
+  // 用户借还款状态: 0借款 1还款
+  let loanReapyStatus = store.state.common.userStatus
+
+  console.log('afterEach状态： ' + loanReapyStatus)
+})
 export default router

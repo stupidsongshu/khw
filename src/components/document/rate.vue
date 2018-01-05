@@ -84,6 +84,7 @@
   .rate
     padding: 0 15px
     padding-bottom: 15px
+    font-size: 12px
     .rate-title
       line-height: 50px
       font-size: 14px
@@ -96,7 +97,6 @@
       width: 100%
       margin: 20px 0
       padding: 10px 0
-      font-size: 12px
       line-height: 24px
       border: 1px solid #d9d9d9
       background-color: #fff
