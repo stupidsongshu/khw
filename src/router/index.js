@@ -114,63 +114,78 @@ const routes = [
   // },
 
   // 借款
-  // {
-  //   path: '/khw',
-  //   name: 'khw',
-  //   component: Khw
-  // },
   {
     path: '/',
     name: 'khw',
     component: Khw,
-    beforeEnter: (to, from, next) => {
-      // let vm = router.app
-      // console.log(vm.appInit)
-      // vm.appInit()
-      // console.log(4)
-      next()
+    meta: {
+      keepAlive: false
     }
   },
   {
     path: '/loan',
     name: 'loan',
-    component: Loan
+    component: Loan,
+    meta: {
+      keepAlive: false
+    }
   },
   {
     path: '/loanDeal',
     name: 'loanDeal',
-    component: LoanDeal
+    component: LoanDeal,
+    meta: {
+      keepAlive: false
+    }
   },
   {
     path: '/inactivated',
     name: 'inactivated',
-    component: Inactivated
+    component: Inactivated,
+    meta: {
+      keepAlive: true
+    }
   },
   // 还款
   {
     path: '/repay',
     name: 'repay',
-    component: Repay
+    component: Repay,
+    meta: {
+      keepAlive: true
+    }
   },
   {
     path: '/repay/onTimeRepay',
     name: 'onTimeRepay',
-    component: OnTimeRepay
+    component: OnTimeRepay,
+    meta: {
+      keepAlive: true
+    }
   },
   {
     path: '/repay/overdueRepay',
     name: 'overdueRepay',
-    component: OverdueRepay
+    component: OverdueRepay,
+    meta: {
+      keepAlive: true
+    }
   },
   {
     path: '/repay/inAdvanceRepay',
     name: 'inAdvanceRepay',
-    component: InAdvanceRepay
+    component: InAdvanceRepay,
+    meta: {
+      keepAlive: true
+    }
   },
   {
     path: '/repay/repayDeal',
     name: 'repayDeal',
-    component: RepayDeal
+    component: RepayDeal,
+    meta: {
+      keepAlive: false
+    }
   },
   // {
   //   path: '/my',
@@ -327,11 +342,17 @@ const routes = [
   {
     path: '/rate',
     name: 'rate',
-    component: Rate
+    component: Rate,
+    meta: {
+      keepAlive: true
+    }
   },
   {
     path: '*',
-    redirect: '/'
+    redirect: '/',
+    meta: {
+      keepAlive: false
+    }
   }
 ]
 const router = new VueRouter({
@@ -352,6 +373,33 @@ if (/iphone/gi.test(ua)) {
 
 let deviceType = store.state.common.deviceType
 
+// 网络监测
+function getNetStatus() {
+  return new Promise((resolve, reject) => {
+    if (deviceType === 'android') {
+      /* eslint-disable no-undef */
+      let netStatus = app.isNet()
+      // console.log('android网络监测: ' + netStatus)
+      resolve(netStatus)
+    } else if (deviceType === 'iphone') {
+      if (window.webkit !== undefined && window.webkit.messageHandlers !== undefined) {
+        try {
+          window.webkit.messageHandlers.getNetStatus.postMessage('')
+
+          window.getNetStatusToWeb = function(netStatus) {
+            // console.log('iphone网络监测：' + netStatus)
+            resolve(netStatus)
+          }
+        } catch (err) {
+          console.log(err)
+        }
+      } else {
+        console.log('调用ios接口失败！')
+      }
+    }
+  })
+}
+
 router.beforeEach((to, from, next) => {
   /**
    * 底部tabbar显示隐藏
@@ -366,66 +414,62 @@ router.beforeEach((to, from, next) => {
   //   store.commit('hasFooterSave', false)
   // }
 
-  // 网络监测
-  /* eslint-disable no-undef */
-  // console.log('deviceType: ' + deviceType)
-  // if (deviceType === 'android') {
-  //   console.log('android网络监测: ' + app.isNet())
-  //   if (app.isNet()) {
-  //     next()
-  //   } else {
-  //     Toast({
-  //       message: '请连接网络'
-  //     })
-  //     next(false)
-  //   }
-  // } else if (deviceType === 'iphone') {
-  //   console.log('TODO：ios网络监测')
-  //   next()
-  // }
+  getNetStatus().then(netStatus => {
+    console.log('deviceType：' + deviceType, '; 网络监测：' + netStatus)
+    // 注意：这里有个巨坑,android传过来的netStatus是boolean类型，但是ios传过来的netStatus是string类型
+    if (deviceType === 'android') {
+      if (!netStatus) {
+        Toast({
+          message: '请打开网络',
+          duration: 800
+        })
 
-  // 用户借还款状态: 0借款 1还款
-  let loanReapyStatus = store.state.common.userStatus
-
-  let isNet = window.navigator.onLine
-  console.log('deviceType：' + deviceType, '; 网络监测：' + isNet, '; 状态： ' + loanReapyStatus)
-  if (!isNet) {
-    Toast({
-      message: '请打开网络',
-      duration: 800
-    })
-    next(false)
-  } else {
-    // fix ios footer只在贷后首页和还款页面显示
-    if (deviceType === 'iphone') {
-      if (window.webkit !== undefined && window.webkit.messageHandlers !== undefined) {
-        try {
-          if (to.path === '/' || to.path === '/repay') {
-            window.webkit.messageHandlers.footerShow.postMessage({
-              show: true,
-              loanReapyStatus: loanReapyStatus
-            })
-          } else {
-            window.webkit.messageHandlers.footerShow.postMessage({
-              show: false,
-              loanReapyStatus: loanReapyStatus
-            })
-          }
-        } catch (err) {
-          console.log(err)
-        }
+        next(false)
       } else {
-        console.log('调用ios接口失败！')
+        next()
+      }
+    } else if (deviceType === 'iphone') {
+      if (netStatus === 'false') {
+        Toast({
+          message: '请打开网络',
+          duration: 800
+        })
+
+        next(false)
+      } else if (netStatus === 'true') {
+        // fix ios footer只在贷后首页和还款页面显示
+        if (deviceType === 'iphone') {
+          if (window.webkit !== undefined && window.webkit.messageHandlers !== undefined) {
+            try {
+              if (to.path === '/') {
+                window.webkit.messageHandlers.footerShow.postMessage({
+                  show: true,
+                  // 用户借还款状态: 0借款 1还款
+                  loanReapyStatus: 0
+                })
+              } else if (to.path === '/repay') {
+                window.webkit.messageHandlers.footerShow.postMessage({
+                  show: true,
+                  // 用户借还款状态: 0借款 1还款
+                  loanReapyStatus: 1
+                })
+              } else {
+                window.webkit.messageHandlers.footerShow.postMessage({
+                  show: false
+                })
+              }
+            } catch (err) {
+              console.log(err)
+            }
+          } else {
+            console.log('调用ios接口失败！')
+          }
+        }
+
+        next()
       }
     }
-
-    next()
-  }
+  })
 })
-router.afterEach((to, from, next) => {
-  // 用户借还款状态: 0借款 1还款
-  let loanReapyStatus = store.state.common.userStatus
 
-  console.log('afterEach状态： ' + loanReapyStatus)
-})
 export default router

@@ -55,6 +55,13 @@
     </script>-->
 
     <style>
+      #erudaWrapper {
+        position: fixed;
+        bottom: 10em;
+        left: 0;
+        width: 50px;
+        height: 50px;
+      }
       .self-indicator-wrapper {
         top: 50%;
         left: 50%;
@@ -212,9 +219,6 @@
 
 
 
-    <!--<script src="https://cdn.bootcss.com/eruda/1.3.2/eruda.min.js"></script>
-    <script>eruda.init()</script>-->
-
 
     <!--<script>
       (function(doc, win, designSize) { // designSize为设计稿的尺寸(宽)
@@ -243,6 +247,8 @@
     </script>-->
   </head>
   <body>
+    <div id="erudaWrapper"></div>
+
     <div id="self-indicator-wrapper" class="self-indicator-wrapper" style="padding: 10px;">
       <span class="self-indicator-spin">
         <div class="self-spinner-fading-circle" style="width: 32px;height: 32px;">
@@ -267,6 +273,14 @@
         document.getElementById('self-indicator-wrapper').style.display = 'none'
       }
     </script>
+
+    <!--<script src="https://cdn.bootcss.com/eruda/1.3.2/eruda.min.js"></script>
+    <script>
+      var el = document.getElementById('erudaWrapper')
+      eruda.init({
+        container: el
+      })
+    </script>-->
 
     <div id="app"></div>
     <!-- built files will be auto injected -->

@@ -1,15 +1,17 @@
 <template>
   <!--<div id="app" :class="{'has-footer': footer}">-->
   <div id="app">
-    <transition :name="transitionName" mode="out-in">
-      <router-view class="child-view"></router-view>
-    </transition>
-    <!--<transition-gruop :name="transitionName" mode="out-in">
+    <!--<transition :name="transitionName" mode="out-in">
       <keep-alive>
-        <router-view v-if="$route.meta.keepAlive" v-on:checkApplyStatus="applyStatus"></router-view>
+        <router-view v-if="$route.meta.keepAlive" class="child-view"></router-view>
       </keep-alive>
-      <router-view v-if="!$route.meta.keepAlive" v-on:checkApplyStatus="applyStatus"></router-view>
-    </transition-gruop>-->
+      <router-view v-if="!$route.meta.keepAlive" class="child-view"></router-view>
+    </transition>-->
+
+    <keep-alive>
+      <router-view v-if="$route.meta.keepAlive" class="child-view"></router-view>
+    </keep-alive>
+    <router-view v-if="!$route.meta.keepAlive" class="child-view"></router-view>
 
     <!--<tab-bar :hasFooter="footer"></tab-bar>-->
   </div>

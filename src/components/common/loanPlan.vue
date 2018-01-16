@@ -1,7 +1,7 @@
 <template>
   <div class="repayment-table" :class="{overflow: overflowScroll}">
     <p class="title">还款计划表：</p>
-    <p class="hint color999">期限内提前还款，按实际借款天数收取利息</p>
+    <p class="hint color999">期限内提前还款，按实际使用期数收取利息</p>
 
     <div class="plan-nav">
       <div class="plan-periods">期数</div>
@@ -38,6 +38,9 @@
         let day = tmp.substr(6, 2)
         return year + '/' + month + '/' + day
       }
+    },
+    created() {
+      console.log(this.loanPlanList)
     }
   }
 </script>

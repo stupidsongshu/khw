@@ -3,6 +3,15 @@ const state = {
    * 设备类型
   */
   deviceType: '',
+  toastInstance: null,
+  /**
+   * isLoading是否正在请求(默认false,请求期间屏蔽后退功能)
+   */
+  isLoading: false,
+  /**
+   * hasPopup 是否有popup组件显示(若有显示，点击后退先消失而不是直接返回上一页)
+   */
+  hasPopup: false,
   /**
    * 底部tabbar
    * hasFooter: 显示隐藏
@@ -54,6 +63,15 @@ const getters = {}
 const mutations = {
   deviceTypeSave(state, payload) {
     state.deviceType = payload
+  },
+  toastInstanceSave(state, payload) {
+    state.toastInstance = payload
+  },
+  isLoadingSave(state, payload) {
+    state.isLoading = payload
+  },
+  hasPopupSave(state, payload) {
+    state.hasPopup = payload
   },
   hasFooterSave(state, payload) {
     state.hasFooter = payload

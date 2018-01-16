@@ -31,28 +31,6 @@
       </div>
     </div>
 
-    <!--<div class="loan-desc">
-      <ul>
-        <li class="item clearfix">
-          <div class="pull-left name">还款期限</div>
-          <div class="pull-left value">{{repayDuration}}个月</div>
-        </li>
-        <li class="item clearfix">
-          <div class="pull-left name">日利率</div>
-          <div class="pull-left value">{{nowDayRate}}%<span class="calc-rate"></span></div>
-        </li>
-        <li class="item clearfix">
-          <div class="pull-left name">共计应还</div>
-          <div class="pull-left value">{{payOffAmt / 100}}元</div>
-        </li>
-      </ul>
-    </div>-->
-
-    <!--<div class="hint" v-if="status === 2">
-      款项已打至您的{{decardOpenBank}}(尾号{{debitCardNo}})账户<br>
-      具体到账时间以银行为准
-    </div>-->
-
     <div class="loan-btn count-down" v-show="status > 1">
       <mt-button class="btn">{{restTime}}s后返回</mt-button>
     </div>
@@ -74,72 +52,15 @@
   export default {
     data() {
       return {
-        popupVisible: true,
+        popupVisible: false,
         // 借款处理状态 0提交成功 1银行处理中 2借款成功 3借款失败
         status: 0,
-        // 借款额度
-        // payAmt: 0,
-        // 借款额度整数部分
-        // payAmtInt: 0,
-        // 借款额度小数部分
-        // payAmtFlo: 0,
-        // 还款总额
-        // payOffAmt: 0,
         // 是否刷新接口
         isRefresh: true,
-        // 还款期限
-        // repayDuration: 0,
-        // 日利率
-        // nowDayRate: 0,
-        // 借记卡开户行
-        // decardOpenBank: '',
-        // 借记卡号
-        // debitCardNo: '',
         restTime: 5
       }
     },
     created() {
-      // this.repayDuration = this.$store.state.loan.loan_duration
-      // let summaryInfo = this.$store.state.common.summaryInfo
-      // this.nowDayRate = summaryInfo.nowDayRate
-      // this.decardOpenBank = summaryInfo.decardOpenBank
-      // this.debitCardNo = summaryInfo.debitCardNo.substring(summaryInfo.debitCardNo.length - 4)
-
-      // 单笔用款明细查询
-      // let commonParams = this.$store.state.common.commonParams
-      // let ua = commonParams.ua
-      // let call = 'Loan.cashExtractDetail'
-      // let timestamp = new Date().getTime()
-      // let sign = this.sign(ua, call, timestamp)
-      // let paramString = JSON.stringify({
-      //   ua: ua,
-      //   call: call,
-      //   args: {
-      //     customerId: commonParams.args.customerId,
-      //     mobileNo: commonParams.args.mobileNo,
-      //     token: commonParams.args.token,
-      //     loanAcctNo: commonParams.args.loanAcctNo
-      //   },
-      //   sign: sign,
-      //   timestamp: timestamp
-      // })
-      //
-      // this.$http.post('/khw/c/h', paramString).then(res => {
-      //   let data = res.data
-      //   if (data.returnCode === '000000') {
-      //     console.log(data.response)
-      //     let dataS = data.response
-      //
-      //     this.payOffAmt = dataS.payOffAmt
-      //     this.payAmt = dataS.payAmt
-      //
-      //     let payAmtStr = dataS.payAmt.toString()
-      //     this.payAmtInt = payAmtStr.substring(0, payAmtStr.length - 2)
-      //     this.payAmtFlo = payAmtStr.substring(payAmtStr.length - 2)
-      //   }
-      // })
-
-      //
       this.checkLoanDeal()
 
       let that = this
@@ -152,23 +73,11 @@
       }, 3000)
     },
     methods: {
-      checkLoanDeal() {
-        let cashExtract = this.$store.state.common.cashExtract
-        console.log(cashExtract.amount, cashExtract.merchantOrderId)
-        if (cashExtract.amount && cashExtract.merchantOrderId) {
-          // 正常情况(有单笔交易信息): 不断更新单笔交易结果接口(Loan.singleTrans)
-          this.updateLoanDealStatus()
-        } else {
-          // 异常情况(无单笔交易信息): 不断更新账户汇总信息(Loan.loanAcctInfo)
-          this.updateLoanAcctInfo()
-        }
-      },
       // 更新借款处理结果状态
       updateLoanDealStatus() {
         let that = this
 
         let cashExtract = this.$store.state.common.cashExtract
-        console.log(cashExtract.amount, cashExtract.merchantOrderId)
 
         let commonParams = this.$store.state.common.commonParams
         let ua = commonParams.ua
@@ -195,7 +104,10 @@
           })
 
           that.$http.post('/khw/c/h', paramString).then(res => {
-            that.popupVisible = true
+            // fix ios 底部tab空白
+            setTimeout(function() {
+              that.popupVisible = true
+            }, 100)
             let data = res.data
             if (data.returnCode === '000000') {
               let res = data.response
@@ -215,8 +127,8 @@
 
               // 返回处理结果后
               if (res.transStus !== 2) {
-                that.popupVisible = false
                 that.isRefresh = false
+                that.popupVisible = false
                 that.updateLoanAcctInfo()
               }
             } else {
@@ -231,8 +143,10 @@
       // 更新账户汇总信息
       updateLoanAcctInfo() {
         let that = this
-        // 账户汇总信息查询
-        let commonParams = that.$store.state.common.commonParams
+
+        let cashExtract = that.$store.state.common.cashExtract
+
+        let commonParams = this.$store.state.common.commonParams
         let ua = commonParams.ua
         let call = 'Loan.loanAcctInfo'
         let timestamp = new Date().getTime()
@@ -256,15 +170,25 @@
               let loanAcctInfo = data.response
               // 更新汇总信息
               that.$store.commit('summaryInfoSave', loanAcctInfo)
-              // 5秒倒计时
-              let timer = setInterval(function() {
-                that.restTime --
-                if (that.restTime === 0) {
-                  clearInterval(timer)
-                  that.restTime = 5
-                  that.checkSummaryInfo()
+
+              if (cashExtract.amount && cashExtract.merchantOrderId) { // 正常情况(有单笔交易信息)
+                // 5秒倒计时
+                let timer = setInterval(function() {
+                  that.restTime --
+                  if (that.restTime === 1) {
+                    clearInterval(timer)
+                    that.restTime = 5
+                    that.checkSummaryInfo()
+                  }
+                }, 1000)
+              } else { // 异常情况(借款处理中未出结果重新进入，无单笔交易信息)
+                // 临时冻结额度为0时，停止请求并关闭动画
+                if (loanAcctInfo.tempFrozenAmt === 0) {
+                  that.isRefresh = false
+                  that.popupVisible = false
                 }
-              }, 1000)
+                that.checkSummaryInfo()
+              }
             } else {
               that.toast(data.returnMsg)
             }
@@ -272,6 +196,24 @@
             console.log(err)
           })
         })
+      },
+      checkLoanDeal() {
+        let that = this
+        let cashExtract = this.$store.state.common.cashExtract
+        console.log(cashExtract.amount, cashExtract.merchantOrderId)
+        if (cashExtract.amount && cashExtract.merchantOrderId) {
+          // 正常情况(有单笔交易信息): 不断更新单笔交易结果接口(Loan.singleTrans)
+          console.log('normal')
+          this.updateLoanDealStatus()
+        } else {
+          // 异常情况(借款处理中未出结果重新进入，无单笔交易信息): 不断更新账户汇总信息(Loan.loanAcctInfo)
+          console.log('unnormal')
+          // fix ios 底部tab空白
+          setTimeout(function() {
+            that.popupVisible = true
+          }, 100)
+          this.updateLoanAcctInfo()
+        }
       }
     }
   }
@@ -282,49 +224,7 @@
   @import '../../assets/css/loanReapyDeal.styl'
 
   .loan-deal
+    width: 100%
+    height: 100%
     padding: 12px 15px
-
-    /*.loan-desc
-      padding-top: 29px
-      padding-left: 39px
-      .item
-        line-height: 30px
-        font-size: 15px
-        .name
-          width: 110px
-          color: #666
-        .value
-          color: #333
-          .calc-rate
-            display: inline-block
-            width: 14px
-            height: 16px
-            margin-left: 15px
-            vertical-align: -3px
-            background-image: url("../../assets/img/icon_rate.png")
-            background-size: 100% 100%
-        .loan-plan
-          display: inline-block
-          color: main-color
-          .icon-plan
-            display: inline-block
-            width: 17px
-            height: 17px
-            margin-right: 4px
-            vertical-align: -3px
-            background-image: url("../../assets/img/icon_plan.png")
-            background-size: 100% 100%
-
-    .hint
-      margin: 59px 0 48px 0
-      line-height: 20px
-      text-align: center
-      color: #999
-      font-size: 12px
-
-    .back-btn
-      width: 100%
-      height: 45px
-      color: #fff
-      background-color: #999*/
 </style>

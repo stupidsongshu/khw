@@ -1,7 +1,10 @@
 <template>
   <div class="loan">
     <mt-header fixed class="header" title="立即借款">
-      <div slot="left" @click="toHome">
+      <!--<router-link to="/" slot="left">
+        <mt-button icon="back"></mt-button>
+      </router-link>-->
+      <div slot="left" @click="back">
         <mt-button icon="back"></mt-button>
       </div>
     </mt-header>
@@ -40,6 +43,7 @@
         <span class="value" v-if="openBank">
           {{openBank}}（尾号{{creditcardNo}}）
         </span>
+        <span class="value" v-if="!openBank" @click="reGetBankInfo">获取失败，点击重试！</span>
         <div class="calc-rate-wrapper">
           <router-link to="/rate" class="calc-rate"></router-link>
         </div>
@@ -73,7 +77,7 @@
     <loan-plan :overflowScroll="false" :loanPlanList="loanPlanList"></loan-plan>
 
     <mt-popup
-      v-model="popupVisible"
+      v-model="hasPopup"
       popup-transition="popup-fade"
       position="bottom"
       :modal="true"
@@ -98,7 +102,6 @@
     },
     data() {
       return {
-        popupVisible: false,
         purpose: '',
         loanPurposeSlot: [{
           flex: 1,
@@ -127,13 +130,12 @@
       },
       loanDuration() {
         return this.$store.state.loan.loan_duration
+      },
+      hasPopup() {
+        return this.$store.state.common.hasPopup
       }
     },
     created() {
-      let that = this
-
-      let commonParams = this.$store.state.common.commonParams
-
       // 本金
       let loanLimit = this.loanLimit
       // 分期数
@@ -151,11 +153,11 @@
       }
 
       /**
-       * @desc 获取当前日期的下一个月下一天
+       * @desc 获取当前日期的下一个月前一天
        * @param date 格式: '2017-12-18'
-       * @returns 格式: '20180119'
+       * @returns 格式: '20180117'
        */
-      function getNextMonthAndNextDate(date) {
+      function getNextMonthAndPreviousDate(date) {
         var arr = date.split('-')
         var year = arr[0] // 获取当前日期的年份
         var month = arr[1] // 获取当前日期的月份
@@ -167,7 +169,7 @@
           year1 = parseInt(year1) + 1
           month1 = 1
         }
-        var day1 = parseInt(day) + 1
+        var day1 = parseInt(day) - 1
         // 当第三个参数为0返回上一个月的最后一天(也是天数)
         var days1 = new Date(year1, month1, 0).getDate()
         if (day1 > days1) {
@@ -187,11 +189,12 @@
       let year = new Date().getFullYear()
       let month = new Date().getMonth()
       let date = new Date().getDate()
+      // 分期本金
+      let prePrin = (loanLimit * 100) / loanDuration
+      // 月利率费
+      let preFee = (loanLimit * 100) * monthRate
+
       for (var i = 0; i < loanDuration; i++) {
-        // 分期本金
-        let prePrin = (loanLimit * 100) / loanDuration
-        // 月利率费
-        let preFee = prePrin * monthRate
         // 还款时间
         if (parseInt(month) > 12) {
           year = parseInt(year) + 1
@@ -203,50 +206,33 @@
           month = 1
         }
         let dateFormat = year + '-' + month + '-' + date
-        let prePayDay = getNextMonthAndNextDate(dateFormat)
+        let prePayDay = getNextMonthAndPreviousDate(dateFormat)
 
-        this.loanPlanList.push({
-          // 分期数
-          paymentPeriod: i + 1,
-          prePayDay: prePayDay,
-          prePrin: prePrin,
-          preFee: preFee,
-          // 还款金额
-          preAmt: prePrin + preFee
-        })
+        if (i < loanDuration - 1) {
+          this.loanPlanList.push({
+            // 分期数
+            paymentPeriod: i + 1,
+            prePayDay: prePayDay,
+            prePrin: prePrin,
+            preFee: preFee,
+            // 还款金额
+            preAmt: prePrin + preFee
+          })
+        } else if (i === loanDuration - 1) {
+          var prePrinBefore = ((loanLimit * 100) / loanDuration).toFixed(2)
+          var prePrinLast = loanLimit * 100 - prePrinBefore * (loanDuration - 1)
+
+          this.loanPlanList.push({
+            // 分期数
+            paymentPeriod: i + 1,
+            prePayDay: prePayDay,
+            prePrin: prePrinLast,
+            preFee: preFee,
+            // 还款金额
+            preAmt: prePrinLast + preFee
+          })
+        }
       }
-
-      // 收款银行
-      let ua = commonParams.ua
-      let call = 'Loan.creditCard'
-      let timestamp = new Date().getTime().toString()
-      this.getSign(call, timestamp).then(sign => {
-        let paramString = JSON.stringify({
-          ua: ua,
-          call: call,
-          args: {
-            customerId: commonParams.args.customerId,
-            mobileNo: commonParams.args.mobileNo,
-            token: commonParams.args.token,
-            loanAcctNo: commonParams.args.loanAcctNo
-          },
-          sign: sign,
-          timestamp: timestamp
-        })
-        that.loading()
-        that.$http.post('/khw/c/h', paramString).then(res => {
-          let data = res.data
-          if (data.returnCode === '000000') {
-            let dataS = data.response
-            if (dataS.creditcardNo) {
-              that.creditcardNo = dataS.creditcardNo.substring(dataS.creditcardNo.length - 4)
-            }
-            that.openBank = dataS.openBank
-          }
-        }).catch(err => {
-          console.log(err)
-        })
-      })
 
       // 借款用途随机排序
       this.loanPurposeValues = [
@@ -300,8 +286,14 @@
         loanPurpose: ' '
       })
       this.loanPurposeSlot[0].values = this.loanPurposeValues
+
+      // 收款银行(信用卡)
+      this.getBankInfo()
     },
     methods: {
+      back() {
+        this.goback()
+      },
       toggleAgree() {
         this.checked = !this.checked
       },
@@ -331,8 +323,44 @@
         // if (!bool) {
         // }
       },
-      toHome() {
-        this.$router.replace('/')
+      // 收款银行
+      getBankInfo() {
+        let that = this
+
+        let commonParams = this.$store.state.common.commonParams
+        let ua = commonParams.ua
+        let call = 'Loan.creditCard'
+        let timestamp = new Date().getTime().toString()
+        this.getSign(call, timestamp).then(sign => {
+          let paramString = JSON.stringify({
+            ua: ua,
+            call: call,
+            args: {
+              customerId: commonParams.args.customerId,
+              mobileNo: commonParams.args.mobileNo,
+              token: commonParams.args.token,
+              loanAcctNo: commonParams.args.loanAcctNo
+            },
+            sign: sign,
+            timestamp: timestamp
+          })
+          that.loading()
+          that.$http.post('/khw/c/h', paramString).then(res => {
+            let data = res.data
+            if (data.returnCode === '000000') {
+              let dataS = data.response
+              if (dataS.creditcardNo) {
+                that.creditcardNo = dataS.creditcardNo.substring(dataS.creditcardNo.length - 4)
+              }
+              that.openBank = dataS.openBank
+            }
+          }).catch(err => {
+            console.log(err)
+          })
+        })
+      },
+      reGetBankInfo() {
+        this.getBankInfo()
       },
       // ios 交互加载外链
       loanAgreementPage() {
@@ -347,7 +375,7 @@
         }
       },
       selectPurpose() {
-        this.popupVisible = true
+        this.$store.commit('hasPopupSave', true)
 
         // fix 弹窗滑动的时候底层页面跟随滚动
         document.getElementById('loanPlanPopup').addEventListener('touchmove', function(event) {
@@ -362,7 +390,7 @@
         }
       },
       ensure() {
-        this.popupVisible = false
+        this.$store.commit('hasPopupSave', false)
       },
       // change 事件有两个参数，分别为当前 picker 的 vue 实例和各 slot 被选中的值组成的数组
       onChange(picker, values) {
@@ -463,9 +491,15 @@
               that.checkSummaryInfo()
             } else {
               that.toast(data.returnMsg)
+
+              // 重新获取账户汇总信息
+              // that.reGetLoanAcctInfo()
             }
           }).catch(err => {
             console.log(err)
+
+            // 重新获取账户汇总信息
+            // that.reGetLoanAcctInfo()
           })
         })
       }

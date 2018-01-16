@@ -39,8 +39,15 @@
     </div>
 
     <div class="loan-btn">
-      <mt-button class="btn" @click="inAdvanceRepayBtn">立即还款</mt-button>
+      <mt-button class="btn" @click="inAdvanceRepayBtn" :disabled="disabledBtn">立即还款</mt-button>
     </div>
+
+    <ul class="hint">
+      <li>特别提示：</li>
+      <li>1.提前还款请保证还款卡内余额充足</li>
+      <li>2.还款日自动还款，请注意还款卡内的余额是否足额</li>
+      <li>3.扣款一旦成功，不可申请撤销</li>
+    </ul>
   </div>
 </template>
 
@@ -61,13 +68,15 @@
         // 开户行
         decardOpenBank: '',
         // 全额结清实际应还违约金（提前还款手续费）
-        realLiquidatedDamages: 0
+        realLiquidatedDamages: 0,
+        disabledBtn: false
       }
     },
-    mounted() {
-      let that = this
+    created() {
+      this.transTime = this.$store.state.loan.loan_applyTime
 
       let summaryInfo = this.$store.state.common.summaryInfo
+      this.payAmt = summaryInfo.baseUsedCreLine
       this.totalLoanAmt = summaryInfo.totalLoanAmt
       this.debitCardNo = summaryInfo.debitCardNo.substring(summaryInfo.debitCardNo.length - 4)
       this.decardOpenBank = summaryInfo.decardOpenBank
@@ -76,38 +85,6 @@
       let realTotalAmount = summaryInfo.realTotalAmount.toString()
       this.realTotalAmountInt = realTotalAmount.substring(0, realTotalAmount.length - 2)
       this.realTotalAmountFlo = realTotalAmount.substring(realTotalAmount.length - 2)
-
-      let commonParams = this.$store.state.common.commonParams
-      let ua = commonParams.ua
-      let call = 'Loan.cashExtractDetail'
-      let timestamp = new Date().getTime()
-      this.getSign(call, timestamp).then(sign => {
-        let paramString = JSON.stringify({
-          ua: ua,
-          call: call,
-          args: {
-            customerId: commonParams.args.customerId,
-            mobileNo: commonParams.args.mobileNo,
-            token: commonParams.args.token,
-            loanAcctNo: commonParams.args.loanAcctNo
-          },
-          sign: sign,
-          timestamp: timestamp
-        })
-
-        that.loading()
-        that.$http.post('/khw/c/h', paramString).then(res => {
-          let data = res.data
-          if (data.returnCode === '000000') {
-            that.transTime = data.response.transTime
-            that.payAmt = data.response.payAmt
-          } else {
-            that.toast(data.returnMsg)
-          }
-        }).catch(err => {
-          console.log(err)
-        })
-      })
     },
     methods: {
       back() {
@@ -115,6 +92,8 @@
       },
       inAdvanceRepayBtn() {
         let that = this
+
+        this.disabledBtn = true
 
         let summaryInfo = this.$store.state.common.summaryInfo
         let commonParams = this.$store.state.common.commonParams
@@ -130,6 +109,7 @@
               mobileNo: commonParams.args.mobileNo,
               token: commonParams.args.token,
               loanAcctNo: commonParams.args.loanAcctNo,
+              // 还款类别 2逾期转正常还款 4全部结清还款
               returnType: 4,
               // 还款金额
               amount: summaryInfo.realTotalAmount
@@ -147,10 +127,18 @@
               that.$store.commit('cashRepaySave', data.response.cashRepay)
               that.checkSummaryInfo()
             } else {
+              that.disabledBtn = false
               that.toast(data.returnMsg)
+
+              // 重新获取账户汇总信息
+              that.reGetLoanAcctInfo()
             }
           }).catch(err => {
+            that.disabledBtn = false
             console.log(err)
+
+            // 重新获取账户汇总信息
+            that.reGetLoanAcctInfo()
           })
         })
       }

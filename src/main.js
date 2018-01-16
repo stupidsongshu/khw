@@ -26,10 +26,6 @@ Vue.prototype.app = app
 
 Vue.prototype.$http = axios
 
-// Vue.prototype.goHome = function() {
-//   this.$router.push('/')
-// }
-
 // if (window.webkit !== undefined && window.webkit.messageHandlers !== undefined) {
 //   try {
 //     window.webkit.messageHandlers.activeMethodIos.postMessage()
@@ -87,7 +83,17 @@ app.ShowView = function() {
 var startTime = new Date().getTime()
 // 物理返回键
 app.back = function() {
-  window.history.go(-1)
+  // fix 若有popup组件显示，点击后退先消失而不是直接返回上一页
+  let hasPopup = store.state.common.hasPopup
+  // isLoading是否正在请求(默认false,请求期间屏蔽后退功能[注意：巨坑来了，如果在全局拦截中使用vuex修改，一旦某个请求被catch到后js就不再执行，目前只能针对特定的请求特殊处理])
+  let isLoading = store.state.common.isLoading
+  if (hasPopup) {
+    store.commit('hasPopupSave', false)
+    return
+  }
+  if (isLoading) {
+    return
+  }
 
   if (router.currentRoute.path === '/' || router.currentRoute.path === '/repay') {
     Toast({
@@ -102,13 +108,25 @@ app.back = function() {
     } else {
       startTime = time
     }
+
+    return
   }
-  if (router.currentRoute.path === '/loan') {
-    router.replace('/')
+
+  // 屏蔽借款处理中、还款处理中返回
+  if (router.currentRoute.path === '/loanDeal' || router.currentRoute.path === '/repay/repayDeal') {
+    return
   }
+
+  window.history.go(-1)
 }
 
 Vue.prototype.goback = function() {
+  // isLoading是否正在请求(默认false,请求期间屏蔽后退功能[注意：巨坑来了，如果在全局拦截中使用vuex修改，一旦某个请求被catch到后js就不再执行，目前只能针对特定的请求特殊处理])
+  let isLoading = store.state.common.isLoading
+  if (isLoading) {
+    return
+  }
+
   this.$router.go(-1)
 }
 
@@ -117,9 +135,11 @@ Vue.prototype.loading = function(txt) {
     text: txt | '',
     spinnerType: 'fading-circle'
   })
+  // store.commit('isLoadingSave', true)
 }
 Vue.prototype.closeLoading = function() {
   Indicator.close()
+  // store.commit('isLoadingSave', false)
 }
 Vue.prototype.toast = function(message, duration) {
   if (!message) {
@@ -141,147 +161,6 @@ Vue.prototype.toast = function(message, duration) {
 //     }, 0)
 //   }
 // })
-
-// 用户申请状态
-// Vue.prototype.applystatus = function() {
-//   let that = this
-//   let loginInfo = JSON.parse(this.app.isLogin())
-//   // console.log(loginInfo)
-//   if (loginInfo.Step === 0 && loginInfo.Result !== 0) { // 未登录
-//     this.$router.push('/login')
-//   } else if (loginInfo.Step === 0 && loginInfo.Result === 0) { // 已登录
-//     this.loading()
-//
-//     // 查询用户申请状态
-//     this.app.AppStatus()
-//     this.app.AppStatusCallBack = function(json) {
-//       that.closeLoading()
-//       json = JSON.parse(json)
-//       console.log(json)
-//       /**
-//        * Result
-//        * 0  缺少信息
-//        [
-//        {822,"身份证信息"},
-//        {823,"身份证正面照片"},
-//        {824,"身份证反面照片"},
-//        {825,"活体照片"},
-//        {826,"签约视频"},
-//        {827,"信用卡"},
-//        {828,"联系人信息"},
-//        {829,"基本信息"},
-//        {830,"银行卡信息"},
-//        ]
-//        * 100  申请开户
-//        * 101  正在审核
-//        * 102  审核通过
-//        * 109  审核拒绝
-//        * 121  调查问卷
-//        */
-//       if (json.Step === 35 && json.Result === 0) {
-//         /* eslint-disable no-unused-vars */
-//         var sign, msg
-//         let requires = JSON.parse(json.Msg)
-//
-//         if (requires.length === 0) {
-//           that.$router.push('/personalCertificate/agreeAuth')
-//         } else if (requires.length > 0) {
-//           for (let [k, v] of Object.entries(requires[0])) {
-//             sign = k
-//             msg = v
-//           }
-//           // console.log(sign, msg)
-//           // Toast({
-//           //   message: '请提交' + msg,
-//           //   duration: 3000
-//           // })
-//
-//           that.$store.commit('signSave', parseInt(sign))
-//
-//           if (parseInt(sign) === 822) {
-//             // 申请资格认证未通过
-//             that.$store.commit('applyQualificationAuthStatusSave', false)
-//             that.$store.commit('applyQualificationAuthStatusSave', false)
-//             that.$store.commit('idFrontApplyQualificationAuthStepSave', 8111)
-//             that.$store.commit('idBackApplyQualificationAuthStepSave', 8111)
-//           } else if (parseInt(sign) >= 825) {
-//             // 申请资格认证已通过
-//             that.$store.commit('applyQualificationAuthStatusSave', true)
-//             that.$store.commit('idFrontApplyQualificationAuthStepSave', 8110)
-//             that.$store.commit('idBackApplyQualificationAuthStepSave', 8110)
-//           }
-//           switch (sign) {
-//             case '822':
-//               // 身份证信息
-//               that.$store.commit('personalCertificateSwiperProgressSave', 1)
-//               that.$router.push('/personalCertificate')
-//               break
-//             case '823':
-//               // 身份证正面照片
-//               that.$store.commit('personalCertificateSwiperProgressSave', 1)
-//               that.$router.push('/personalCertificate')
-//               break
-//             case '824':
-//               // 身份证反面照片
-//               that.$store.commit('personalCertificateSwiperProgressSave', 1)
-//               that.$router.push('/personalCertificate')
-//               break
-//             case '825':
-//               // 活体照片
-//               that.$store.commit('personalCertificateSwiperProgressSave', 1)
-//               that.$router.push('/personalCertificate/faceRecognition')
-//               break
-//             case '826':
-//               // 签约视频
-//               that.$router.push('/personalCertificate/videoAuth')
-//               that.$store.commit('personalCertificateSwiperProgressSave', 5)
-//               break
-//             case '827':
-//               // 信用卡
-//               that.$router.push('/personalCertificate/agreeAuth')
-//               break
-//             case '828':
-//               // 联系人信息
-//               that.$router.push('/personalCertificate/linkman')
-//               that.$store.commit('personalCertificateSwiperProgressSave', 4)
-//               break
-//             case '829':
-//               // 基本信息
-//               that.$router.push('/personalCertificate/baseInfo')
-//               that.$store.commit('personalCertificateSwiperProgressSave', 3)
-//               break
-//             case '830':
-//               // 银行卡信息-借记卡
-//               that.$router.push('/personalCertificate/bankCardInfo')
-//               that.$store.commit('personalCertificateSwiperProgressSave', 2)
-//               break
-//           }
-//         }
-//       } else if (json.Step === 35 && json.Result === 100) {
-//         // 申请开户
-//         that.$store.commit('waitAuditStatusSave', 0)
-//         that.$router.push('/personalCertificate/waitAudit')
-//         // that.$router.push('/personalCertificate')
-//       } else if (json.Step === 35 && json.Result === 101) {
-//         // 正在审核
-//         that.$store.commit('waitAuditStatusSave', 0)
-//         that.$router.push('/personalCertificate/waitAudit')
-//       } else if (json.Step === 35 && json.Result === 102) {
-//         // 审核通过
-//         that.$store.commit('waitAuditStatusSave', 2)
-//         that.$router.push('/personalCertificate/waitAudit')
-//       } else if (json.Step === 35 && json.Result === 109) {
-//         // 审核拒绝
-//         that.$store.commit('waitAuditStatusSave', 1)
-//         that.$router.push('/personalCertificate/waitAudit')
-//       } else if (json.Step === 35 && json.Result === 121) {
-//         // 调查问卷
-//         that.$store.commit('waitAuditStatusSave', 3)
-//         // that.$router.push('/personalCertificate/waitAudit')
-//       }
-//     }
-//   }
-// }
 
 // 签名
 // Vue.prototype.sign = function(ua, call, timestamp) {
@@ -317,6 +196,7 @@ Vue.prototype.getSign = function(call, timestamp) {
   })
 }
 
+// 根据账户汇总信息控制跳转逻辑
 Vue.prototype.checkSummaryInfo = function() {
   /**
    * @param: overdueStatus 逾期状态
@@ -387,7 +267,7 @@ Vue.prototype.checkSummaryInfo = function() {
       // setLoanStatus(int) 借还款状态: 0借款 1还款
       app.setLoanStatus(0)
     }
-    this.$router.push('/inactivated')
+    this.$router.replace('/inactivated')
     return
   }
 
@@ -401,7 +281,7 @@ Vue.prototype.checkSummaryInfo = function() {
 // appInit 测试
 Vue.prototype.appInit = function() {
   let ua = 'KHW_H5_SIGN'
-  let call = 'Account.register'
+  let call = 'Protocol.customerName'
   let timestamp = new Date().getTime()
   let sign = this.sign(ua, call, timestamp)
   console.log(timestamp)
@@ -410,9 +290,7 @@ Vue.prototype.appInit = function() {
     ua: ua,
     call: call,
     args: {
-      mobileNo: '15620516990',
-      dynamicPwd: '8888',
-      channel: 'youmeng'
+      mobileNo: '17717602280'
     },
     sign: sign,
     timestamp: timestamp
@@ -428,77 +306,14 @@ Vue.prototype.appInit = function() {
   }).catch(error => {
     console.log(error)
   })
-
-  // let that = this
-  // this.loading()
-  // // this.$http.post('/khw/c/l?mobileNo=13786868686').then(res => {
-  // this.$http.post('/sms/m/h').then(res => {
-  //   if (res.data.returnCode === '000000') {
-  //     let data = res.data.response
-  //     let args = {
-  //       customerId: data.customerId,
-  //       mobileNo: data.mobileNo,
-  //       token: data.token,
-  //       loanAcctNo: data.loanAcctNo
-  //     }
-  //     store.commit('commonParamsSave', {
-  //       ua: 'KHW_H5_SIGN',
-  //       args: args
-  //     })
-  //
-  //     // 账户汇总信息查询
-  //     let commonParams = that.$store.state.common.commonParams
-  //     let ua = commonParams.ua
-  //     let call = 'Account.dynamicPwd'
-  //     let timestamp = new Date().getTime()
-  //     let sign = that.sign(ua, call, timestamp)
-  //     console.log(timestamp)
-  //     console.log(sign)
-  //     let paramString = JSON.stringify({
-  //       ua: ua,
-  //       call: call,
-  //       args: {
-  //         customerId: commonParams.args.customerId,
-  //         mobileNo: commonParams.args.mobileNo,
-  //         token: commonParams.args.token,
-  //         loanAcctNo: commonParams.args.loanAcctNo
-  //       },
-  //       sign: sign,
-  //       timestamp: timestamp
-  //     })
-  //
-  //     that.loading()
-  //     that.$http.post('/khw/c/h', paramString).then(res => {
-  //       let data = res.data
-  //       if (data.returnCode === '000000') {
-  //         let loanAcctInfo = data.response
-  //         console.log(loanAcctInfo)
-  //         that.$store.commit('loan_max_save', loanAcctInfo.baseTotCreLine)
-  //         // 缓存汇总信息
-  //         that.$store.commit('summaryInfoSave', loanAcctInfo)
-  //         that.checkSummaryInfo()
-  //       } else {
-  //         that.toast(data.returnMsg)
-  //       }
-  //     }).catch(error => {
-  //       console.log(error)
-  //     })
-  //   } else {
-  //     that.toast(res.data.returnMsg)
-  //   }
-  // }).catch(err => {
-  //   console.log(err)
-  // })
 }
 
-// 账户汇总信息查询
+// 获取账户汇总信息
 let getLoanInfoNum = 0
 Vue.prototype.getLoanInfo = function() {
   getLoanInfoNum++
   console.log('获取账户汇总信息第 ' + getLoanInfoNum + ' 次')
-  Indicator.open({
-    spinnerType: 'fading-circle'
-  })
+  this.loading()
 
   let that = this
   let commonParams = store.state.common.commonParams
@@ -524,26 +339,75 @@ Vue.prototype.getLoanInfo = function() {
     that.$http.post('/khw/c/h', paramString).then(res => {
       let data = res.data
       if (data.returnCode === '000000') {
-        Indicator.close()
+        that.closeLoading()
 
         let loanAcctInfo = data.response
         that.$store.commit('loan_max_save', loanAcctInfo.baseTotCreLine)
+        that.$store.commit('loan_limit_save', loanAcctInfo.baseTotCreLine)
         // 缓存汇总信息
         that.$store.commit('summaryInfoSave', loanAcctInfo)
         that.checkSummaryInfo()
       } else {
-        // that.toast(data.returnMsg)
-
-        if (getLoanInfoNum <= 10) {
+        if (getLoanInfoNum < 10) {
           that.getLoanInfo()
         }
+      }
+    }).catch(err => {
+      console.log(err)
+      // let toastInstance = store.state.common.toastInstance
+      // toastInstance.close()
+
+      if (getLoanInfoNum < 10) {
+        that.getLoanInfo()
+      }
+    })
+  })
+}
+
+// 重新获取账户汇总信息
+Vue.prototype.reGetLoanAcctInfo = function() {
+  this.loading()
+
+  let that = this
+  let commonParams = this.$store.state.common.commonParams
+  let ua = commonParams.ua
+  let call = 'Loan.loanAcctInfo'
+  let timestamp = new Date().getTime()
+
+  this.getSign(call, timestamp).then(sign => {
+    let paramString = JSON.stringify({
+      ua: ua,
+      call: call,
+      args: {
+        customerId: commonParams.args.customerId,
+        mobileNo: commonParams.args.mobileNo,
+        token: commonParams.args.token,
+        loanAcctNo: commonParams.args.loanAcctNo
+      },
+      sign: sign,
+      timestamp: timestamp
+    })
+    console.log(paramString)
+
+    that.$http.post('/khw/c/h', paramString).then(res => {
+      that.closeLoading()
+
+      let data = res.data
+      if (data.returnCode === '000000') {
+        let loanAcctInfo = data.response
+        that.$store.commit('loan_max_save', loanAcctInfo.baseTotCreLine)
+        that.$store.commit('loan_limit_save', loanAcctInfo.baseTotCreLine)
+        // 缓存汇总信息
+        that.$store.commit('summaryInfoSave', loanAcctInfo)
+        that.checkSummaryInfo()
+      } else {
+        that.toast(data)
       }
     }).catch(err => {
       console.log(err)
     })
   })
 }
-
 // init 正式
 Vue.prototype.init = function() {
   let that = this
@@ -552,8 +416,8 @@ Vue.prototype.init = function() {
   if (deviceType === 'android') {
     let userData = app.userData()
     userData = JSON.parse(userData)
-    console.log('Android 获取用户基本信息4个字段')
-    console.log(userData)
+    // console.log('Android 获取用户基本信息4个字段')
+    // console.log(userData)
 
     if (userData.loanAcctNo && userData.mobileNo && userData.token && userData.customerId) {
       store.commit('commonParamsSave', {
@@ -631,18 +495,30 @@ new Vue({
       // if (config.method.toLowerCase() === 'post') {
       //   config.data = qs.stringify(config.data)
       // }
+
+      // store.commit('isLoadingSave', true)
       return config
     }, function(error) {
+      // store.commit('isLoadingSave', true)
       return Promise.reject(error)
     })
     axios.interceptors.response.use(function(response) {
       Indicator.close()
+      // store.commit('isLoadingSave', false)
       return response
     }, function(error) {
       Indicator.close()
+      // store.commit('isLoadingSave', false)
+
+      // let toastInstance = Toast({
+      //   message: '获取数据失败，请稍后重试',
+      //   duration: 2000
+      // })
+      // store.commit('toastInstanceSave', toastInstance)
+
       Toast({
         message: '获取数据失败，请稍后重试',
-        duration: 2000
+        duration: 1500
       })
       return Promise.reject(error)
     })
