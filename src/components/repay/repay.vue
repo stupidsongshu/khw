@@ -138,7 +138,7 @@
           })
 
           that.loading()
-          that.$http.post('/khw/c/h', paramString).then(res => {
+          that.$http.post(this.$store.state.common.api, paramString).then(res => {
             let data = res.data
             if (data.returnCode === '000000') {
               // 未还本金
@@ -152,9 +152,7 @@
               that.toast(data.returnMsg)
             }
           }).catch(err => {
-            console.log(1)
             console.log(err)
-            console.log(2)
           })
         })
       },

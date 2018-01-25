@@ -153,7 +153,7 @@
           })
 
           that.loading()
-          that.$http.post('/khw/c/h', paramString).then(res => {
+          that.$http.post(this.$store.state.common.api, paramString).then(res => {
             let data = res.data
             if (data.returnCode === '000000') {
               // 更新汇总信息

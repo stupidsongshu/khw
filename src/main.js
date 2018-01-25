@@ -5,7 +5,7 @@ import App from './App'
 import router from './router'
 import axios from 'axios'
 import store from './store/index'
-// import md5 from 'blueimp-md5'
+import config from './config'
 // import qs from 'qs'
 import MintUI, {Indicator, Toast} from 'mint-ui'
 import 'mint-ui/lib/style.css'
@@ -17,6 +17,13 @@ import './assets/font-awesome-4.7.0/css/font-awesome.min.css'
 /* eslint-disable no-unused-vars */
 var VConsole = require('vconsole/dist/vconsole.min')
 var vConsole = new VConsole()
+
+if (process.env.NODE_ENV === 'development') {
+  store.commit('apiSave', config.api.dev + '/khw/c/h')
+} else if (process.env.NODE_ENV === 'production') {
+  store.commit('apiSave', config.api.pro)
+}
+console.log(store.state.common.api)
 
 Vue.config.productionTip = false
 Vue.use(MintUI)
@@ -85,7 +92,7 @@ var startTime = new Date().getTime()
 app.back = function() {
   // fix 若有popup组件显示，点击后退先消失而不是直接返回上一页
   let hasPopup = store.state.common.hasPopup
-  // isLoading是否正在请求(默认false,请求期间屏蔽后退功能[注意：巨坑来了，如果在全局拦截中使用vuex修改，一旦某个请求被catch到后js就不再执行，目前只能针对特定的请求特殊处理])
+  // isLoading是否正在请求(默认false,请求期间屏蔽后退功能 [注意：巨坑来了，如果在全局拦截中使用vuex-persist修改，一旦某个请求被catch到后js就不再执行，目前去掉了插件vuex-persist])
   let isLoading = store.state.common.isLoading
   if (hasPopup) {
     store.commit('hasPopupSave', false)
@@ -121,7 +128,7 @@ app.back = function() {
 }
 
 Vue.prototype.goback = function() {
-  // isLoading是否正在请求(默认false,请求期间屏蔽后退功能[注意：巨坑来了，如果在全局拦截中使用vuex修改，一旦某个请求被catch到后js就不再执行，目前只能针对特定的请求特殊处理])
+  // isLoading是否正在请求(默认false,请求期间屏蔽后退功能[注意：巨坑来了，如果在全局拦截中使用vuex-persist修改，一旦某个请求被catch到后js就不再执行，目前去掉了插件vuex-persist])
   let isLoading = store.state.common.isLoading
   if (isLoading) {
     return
@@ -163,9 +170,6 @@ Vue.prototype.toast = function(message, duration) {
 // })
 
 // 签名
-// Vue.prototype.sign = function(ua, call, timestamp) {
-//   return md5(ua + '&' + call + '&' + timestamp + '&' + '68352e6b616875616e77616e672e636f6d')
-// }
 Vue.prototype.getSign = function(call, timestamp) {
   // 注意: 传入Android的timestamp<number>需转成<string>
   let timestampStr = timestamp.toString()
@@ -278,35 +282,6 @@ Vue.prototype.checkSummaryInfo = function() {
     app.setLoanStatus(0)
   }
 }
-// appInit 测试
-Vue.prototype.appInit = function() {
-  let ua = 'KHW_H5_SIGN'
-  let call = 'Protocol.customerName'
-  let timestamp = new Date().getTime()
-  let sign = this.sign(ua, call, timestamp)
-  console.log(timestamp)
-  console.log(sign)
-  let paramString = JSON.stringify({
-    ua: ua,
-    call: call,
-    args: {
-      mobileNo: '17717602280'
-    },
-    sign: sign,
-    timestamp: timestamp
-  })
-
-  this.$http.post('/khw/c/h', paramString).then(res => {
-    let data = res.data
-    console.log(data)
-    if (data.returnCode === '000000') {
-    } else {
-      that.toast(data.returnMsg)
-    }
-  }).catch(error => {
-    console.log(error)
-  })
-}
 
 // 获取账户汇总信息
 let getLoanInfoNum = 0
@@ -336,7 +311,7 @@ Vue.prototype.getLoanInfo = function() {
     })
     console.log(paramString)
 
-    that.$http.post('/khw/c/h', paramString).then(res => {
+    that.$http.post(store.state.common.api, paramString).then(res => {
       let data = res.data
       if (data.returnCode === '000000') {
         that.closeLoading()
@@ -389,7 +364,7 @@ Vue.prototype.reGetLoanAcctInfo = function() {
     })
     console.log(paramString)
 
-    that.$http.post('/khw/c/h', paramString).then(res => {
+    that.$http.post(store.state.common.api, paramString).then(res => {
       that.closeLoading()
 
       let data = res.data
@@ -401,7 +376,7 @@ Vue.prototype.reGetLoanAcctInfo = function() {
         that.$store.commit('summaryInfoSave', loanAcctInfo)
         that.checkSummaryInfo()
       } else {
-        that.toast(data)
+        that.toast(data.returnMsg)
       }
     }).catch(err => {
       console.log(err)
@@ -475,8 +450,13 @@ new Vue({
   template: '<App/>',
   components: {App},
   created() {
-    axios.defaults.baseURL = 'http://xfjr.ledaikuan.cn:9191'
-    // axios.defaults.baseURL = 'http://xfjr.ledaikuan.cn:9595'
+    axios.defaults.method = 'post'
+    // if (process.env.NODE_ENV === 'development') {
+    //   axios.defaults.baseURL = config.api.dev + '/khw/c/h'
+    // } else if (process.env.NODE_ENV === 'production') {
+    //   axios.defaults.baseURL = config.api.pro
+    // }
+    // console.log(axios.defaults.baseURL)
     // `timeout` 指定请求超时的毫秒数(0 表示无超时时间)，如果请求超过 `timeout` 的时间，请求将被中断
     axios.defaults.timeout = 20000
 
@@ -496,19 +476,19 @@ new Vue({
       //   config.data = qs.stringify(config.data)
       // }
 
-      // store.commit('isLoadingSave', true)
+      store.commit('isLoadingSave', true)
       return config
     }, function(error) {
-      // store.commit('isLoadingSave', true)
+      store.commit('isLoadingSave', true)
       return Promise.reject(error)
     })
     axios.interceptors.response.use(function(response) {
       Indicator.close()
-      // store.commit('isLoadingSave', false)
+      store.commit('isLoadingSave', false)
       return response
     }, function(error) {
       Indicator.close()
-      // store.commit('isLoadingSave', false)
+      store.commit('isLoadingSave', false)
 
       // let toastInstance = Toast({
       //   message: '获取数据失败，请稍后重试',
@@ -523,7 +503,6 @@ new Vue({
       return Promise.reject(error)
     })
 
-    // this.appInit()
     this.init()
   }
 })

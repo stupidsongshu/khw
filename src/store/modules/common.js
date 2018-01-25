@@ -1,4 +1,5 @@
 const state = {
+  api: '',
   /*
    * 设备类型
   */
@@ -61,6 +62,9 @@ const state = {
 const getters = {}
 
 const mutations = {
+  apiSave(state, payload) {
+    state.api = payload
+  },
   deviceTypeSave(state, payload) {
     state.deviceType = payload
   },

@@ -38,9 +38,6 @@
         let day = tmp.substr(6, 2)
         return year + '/' + month + '/' + day
       }
-    },
-    created() {
-      console.log(this.loanPlanList)
     }
   }
 </script>

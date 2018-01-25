@@ -103,7 +103,7 @@
             timestamp: timestamp
           })
 
-          that.$http.post('/khw/c/h', paramString).then(res => {
+          that.$http.post(this.$store.state.common.api, paramString).then(res => {
             // fix ios 底部tab空白
             setTimeout(function() {
               that.popupVisible = true
@@ -118,10 +118,10 @@
               } else if (res.transStus === 1) {
                 that.status = 3
                 that.toast('借款失败，请稍后重试')
-                that.$router.push('/khw')
               } else if (res.transStus === 2) {
                 that.status = 1
               } else if (res.transStus === 9) {
+                that.status = 3
                 that.toast('订单不存在')
               }
 
@@ -164,7 +164,7 @@
             timestamp: timestamp
           })
 
-          that.$http.post('/khw/c/h', paramString).then(res => {
+          that.$http.post(this.$store.state.common.api, paramString).then(res => {
             let data = res.data
             if (data.returnCode === '000000') {
               let loanAcctInfo = data.response

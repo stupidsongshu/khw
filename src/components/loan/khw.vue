@@ -34,13 +34,14 @@
         <span class="pull-left">{{loanMin}}</span>
         <span class="pull-right">{{loanMax}}</span>
       </div>
-    </div>
 
-    <div class="index-btn-group-wrapper">
       <div class="select-month">
         <mt-button :class="{active: loanDuration === 6}" @click="selectLoanDuration(6)">6个月</mt-button>
         <mt-button :class="{active: loanDuration === 12}" @click="selectLoanDuration(12)">12个月</mt-button>
       </div>
+    </div>
+
+    <div class="index-btn-group-wrapper">
       <div class="loan-btn">
         <mt-button class="btn" @click="loan">立即借款</mt-button>
       </div>
@@ -135,9 +136,6 @@
       activeTabIndex() {
         return this.$store.state.common.activeTabIndex
       }
-    },
-    watch: {
-
     }
   }
 </script>
@@ -220,11 +218,6 @@
       margin-top: 14px
       color: #999
       font-size: 13px
-  .index-btn-group-wrapper
-    position: absolute
-    left: 0
-    bottom: 54px
-    width: 100%
     .select-month
       display: flex
       justify-content: space-between
@@ -243,6 +236,12 @@
           color: #fff
           border: none
           background-color: #daab5b
+
+  .index-btn-group-wrapper
+    position: absolute
+    left: 0
+    bottom: 54px
+    width: 100%
 
     .footer-txt
       line-height: 44px

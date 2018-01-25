@@ -40,10 +40,8 @@
 
       <div class="loan-item">
         <span class="name">收款银行：</span>
-        <span class="value" v-if="openBank">
-          {{openBank}}（尾号{{creditcardNo}}）
-        </span>
-        <span class="value" v-if="!openBank" @click="reGetBankInfo">获取失败，点击重试！</span>
+        <span class="value" v-if="getBankReq && openBank">{{openBank}}（尾号{{creditcardNo}}）</span>
+        <span class="value" v-if="getBankReq && !openBank" @click="reGetBankInfo">获取失败，点击重试！</span>
         <div class="calc-rate-wrapper">
           <router-link to="/rate" class="calc-rate"></router-link>
         </div>
@@ -112,6 +110,8 @@
         dayRate: 0,
         openBank: '',
         creditcardNo: '',
+        // 是否发出获取收款银行请求
+        getBankReq: false,
         vcode: '',
         loanUseId: '',
         hasGetCode: false,
@@ -136,6 +136,12 @@
       }
     },
     created() {
+      // 收款银行(信用卡)
+      this.getBankInfo()
+
+      // 借款用途随机排序
+      this.randomSortLoanPurpose()
+
       // 本金
       let loanLimit = this.loanLimit
       // 分期数
@@ -233,62 +239,6 @@
           })
         }
       }
-
-      // 借款用途随机排序
-      this.loanPurposeValues = [
-        {
-          id: '1',
-          loanPurpose: '装修'
-        },
-        {
-          id: '2',
-          loanPurpose: '婚庆'
-        },
-        {
-          id: '3',
-          loanPurpose: '旅游'
-        },
-        {
-          id: '4',
-          loanPurpose: '教育'
-        },
-        {
-          id: '5',
-          loanPurpose: '租房'
-        },
-        {
-          id: '6',
-          loanPurpose: '汽车周边'
-        },
-        {
-          id: '7',
-          loanPurpose: '电子数码产品'
-        },
-        {
-          id: '8',
-          loanPurpose: '医疗'
-        },
-        {
-          id: 'A',
-          loanPurpose: '家用电器'
-        },
-        {
-          id: 'B',
-          loanPurpose: '家具家居'
-        }
-      ]
-      function randomSort() {
-        return Math.random() > 0.5 ? -1 : 1
-      }
-      this.loanPurposeValues.sort(randomSort)
-      this.loanPurposeValues.unshift({
-        id: '0',
-        loanPurpose: ' '
-      })
-      this.loanPurposeSlot[0].values = this.loanPurposeValues
-
-      // 收款银行(信用卡)
-      this.getBankInfo()
     },
     methods: {
       back() {
@@ -323,6 +273,60 @@
         // if (!bool) {
         // }
       },
+      // 借款用途随机排序
+      randomSortLoanPurpose() {
+        this.loanPurposeValues = [
+          {
+            id: '1',
+            loanPurpose: '装修'
+          },
+          {
+            id: '2',
+            loanPurpose: '婚庆'
+          },
+          {
+            id: '3',
+            loanPurpose: '旅游'
+          },
+          {
+            id: '4',
+            loanPurpose: '教育'
+          },
+          {
+            id: '5',
+            loanPurpose: '租房'
+          },
+          {
+            id: '6',
+            loanPurpose: '汽车周边'
+          },
+          {
+            id: '7',
+            loanPurpose: '电子数码产品'
+          },
+          {
+            id: '8',
+            loanPurpose: '医疗'
+          },
+          {
+            id: 'A',
+            loanPurpose: '家用电器'
+          },
+          {
+            id: 'B',
+            loanPurpose: '家具家居'
+          }
+        ]
+        function randomSort() {
+          return Math.random() > 0.5 ? -1 : 1
+        }
+        this.loanPurposeValues.sort(randomSort)
+        this.loanPurposeValues.unshift({
+          id: '0',
+          loanPurpose: ' '
+        })
+        this.loanPurposeSlot[0].values = this.loanPurposeValues
+      },
       // 收款银行
       getBankInfo() {
         let that = this
@@ -345,7 +349,8 @@
             timestamp: timestamp
           })
           that.loading()
-          that.$http.post('/khw/c/h', paramString).then(res => {
+          that.$http.post(this.$store.state.common.api, paramString).then(res => {
+            that.getBankReq = true
             let data = res.data
             if (data.returnCode === '000000') {
               let dataS = data.response
@@ -355,10 +360,12 @@
               that.openBank = dataS.openBank
             }
           }).catch(err => {
+            that.getBankReq = true
             console.log(err)
           })
         })
       },
+      // 重新获取收款银行
       reGetBankInfo() {
         this.getBankInfo()
       },
@@ -376,6 +383,9 @@
       },
       selectPurpose() {
         this.$store.commit('hasPopupSave', true)
+
+        // 借款用途随机排序
+        this.randomSortLoanPurpose()
 
         // fix 弹窗滑动的时候底层页面跟随滚动
         document.getElementById('loanPlanPopup').addEventListener('touchmove', function(event) {
@@ -426,7 +436,7 @@
           })
 
           that.loading()
-          that.$http.post('/khw/c/h', paramString).then(res => {
+          that.$http.post(this.$store.state.common.api, paramString).then(res => {
             if (res.data.response === '000000') {
               that.hasGetCode = true
               let timer = setInterval(() => {
@@ -481,7 +491,7 @@
           })
 
           that.loading()
-          that.$http.post('/khw/c/h', paramString).then(res => {
+          that.$http.post(this.$store.state.common.api, paramString).then(res => {
             let data = res.data
             if (data.returnCode === '000000') {
               let dataS = data.response
@@ -491,15 +501,9 @@
               that.checkSummaryInfo()
             } else {
               that.toast(data.returnMsg)
-
-              // 重新获取账户汇总信息
-              // that.reGetLoanAcctInfo()
             }
           }).catch(err => {
             console.log(err)
-
-            // 重新获取账户汇总信息
-            // that.reGetLoanAcctInfo()
           })
         })
       }

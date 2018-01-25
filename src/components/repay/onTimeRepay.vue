@@ -65,7 +65,7 @@
               })
 
               that.loading()
-              that.$http.post('/khw/c/h', paramString).then(res => {
+              that.$http.post(this.$store.state.common.api, paramString).then(res => {
                 let data = res.data
                 if (data.returnCode === '000000') {
                   resolve(data.response)
@@ -108,7 +108,7 @@
               })
 
               that.loading()
-              that.$http.post('/khw/c/h', paramString).then(res => {
+              that.$http.post(this.$store.state.common.api, paramString).then(res => {
                 let data = res.data
                 if (data.returnCode === '000000') {
                   that.loanPlanList = data.response.list.splice(0, cashExtractDetailData.realInstalPeriod)
