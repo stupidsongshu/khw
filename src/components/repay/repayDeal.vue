@@ -109,7 +109,7 @@
             timestamp: timestamp
           })
 
-          that.$http.post(this.$store.state.common.api, paramString).then(res => {
+          that.$http.post(that.$store.state.common.api, paramString).then(res => {
             // fix ios 底部tab空白
             setTimeout(function() {
               that.popupVisible = true
@@ -118,20 +118,18 @@
             if (data.returnCode === '000000') {
               let res = data.response
               console.log(res)
-              // this.transTime = res.transTime
               // transStus 0成功 1失败 2处理中 9订单不存在
               if (res.transStus === 0) {
                 that.status = 2
-                that.toast('还款成功')
-                // this.transTimeS = res.transTime
+                that.toast('还款成功', 3000)
               } else if (res.transStus === 1) {
                 that.status = 3
-                that.toast('还款失败，请稍后重试')
+                that.toast('还款失败，请稍后重试', 3000)
               } else if (res.transStus === 2) {
                 that.status = 1
               } else if (res.transStus === 9) {
                 that.status = 3
-                that.toast('订单不存在')
+                that.toast('订单不存在', 3000)
               }
 
               // 返回处理结果后
@@ -142,7 +140,7 @@
               }
             } else {
               that.popupVisible = false
-              that.toast(data.returnMsg, 1000)
+              that.toast(data.returnMsg, 3000)
             }
           }).catch(err => {
             console.log(err)
@@ -173,7 +171,7 @@
             timestamp: timestamp
           })
 
-          that.$http.post(this.$store.state.common.api, paramString).then(res => {
+          that.$http.post(that.$store.state.common.api, paramString).then(res => {
             let data = res.data
             if (data.returnCode === '000000') {
               let loanAcctInfo = data.response

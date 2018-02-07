@@ -4,7 +4,7 @@
       {{phone.number}}成功借款{{phone.amount}}元
     </swiper-slide>-->
     <swiper-slide class="phone-item" v-for="(user, index) in list" :key="index">
-      {{user.phone}}成功借款{{user.amount}}元
+      {{user.phone}}成功消费借款{{user.amount}}元用于{{user.purpose}}消费
     </swiper-slide>
   </swiper>
 </template>
@@ -17,6 +17,7 @@
     data() {
       return {
         phonePrefixArr: [134, 135, 136, 137, 138, 139, 147, 148, 150, 151, 152, 157, 158, 159, 172, 178, 182, 183, 184, 187, 188, 198, 130, 131, 132, 145, 146, 155, 156, 166, 171, 175, 176, 185, 186, 133, 149, 153, 173, 174, 177, 180, 181, 189, 199, 170],
+        loanPurpose: ['装修', '婚庆', '旅游', '教育', '租房', '汽车周边', '电子数码产品', '医疗', '家用电器', '家具家居'],
         list: [],
         phoneArray: [],
         ammountArray: [],
@@ -92,8 +93,16 @@
         var last3 = Math.floor(Math.random() * 10)
         var last4 = Math.floor(Math.random() * 10)
         var phone = this.phonePrefixArr[prefixNo] + '****' + last1 + last2 + last3 + last4
+
         var amount = Math.round((Math.random() * 10) + 1) * 1500
-        this.list.push({phone: phone, amount: amount})
+
+        var purpose = this.loanPurpose[Math.floor(Math.random() * this.loanPurpose.length)]
+
+        this.list.push({
+          phone: phone,
+          amount: amount,
+          purpose: purpose
+        })
       }
     }
   }

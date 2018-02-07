@@ -8,7 +8,31 @@
 
     <div class="">
       <h1 class="rate-title color333">一、贷款费用说明</h1>
-      <p class="indent color666">卡还王的到账金额即是申请金额，不收取信审费、管理费、平台费等额外费用。贷款期限可分为6个月和12个月，月利息分别为1.35%、1.25%，支持提前还款，但需一次性还清，提前还款收取提前还款金额的3%作为提前还款违约金。</p>
+      <p class="indent color666">卡还王的到账金额即是申请金额，不收取信审费、管理费、平台费等额外费用。贷款期限可分为3个月、6个月和12个月，本消费贷款产品年化费率根据客户资质差异化核定，产品年化费率为35.64%-36.00%，最终费率以中银消费金融核定为准！本产品只支持当期提前还款，不支持客户其他部分提前还款与提前结清。提前还款不收取提前还款违约金。</p>
+      <table class="rate-table" border="1" cellspacing="0" cellpadding="10">
+        <tbody>
+            <tr>
+                <td>期限/月</td>
+                <td>月分期手续费率</td>
+                <td>年化手续费率</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>1.98%</td>
+                <td>35.64%</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>1.75%</td>
+                <td>36.00%</td>
+            </tr>
+            <tr>
+                <td>12</td>
+                <td>1.62%</td>
+                <td>35.89%</td>
+            </tr>
+        </tbody>
+      </table>
     </div>
     <div>
       <h1 class="rate-title color333">二、逾期费用说明</h1>
@@ -19,7 +43,7 @@
           <div class="color333">逾期综合费用</div>
         </li>
         <li>
-          <div>1000元~5000元（含）</div>
+          <div>0~5000元（含）</div>
           <div>5元</div>
         </li>
         <li>
@@ -60,7 +84,7 @@
         </li>
       </ul>
       <div class="color666">逾期后，应还金额为：</div>
-      <h1 class="overdue-total-fee color333">贷款金额+利息(借款期数*月利率)+逾期综合费用</h1>
+      <h1 class="overdue-total-fee color333">贷款金额+利息(借款期数*月分期手续费率)+逾期综合费用</h1>
     </div>
 
     <div class="">
@@ -93,6 +117,13 @@
       text-indent: 2em
       font-size: 12px
       line-height: 20px
+    .rate-table
+      width: 100%
+      margin: 0 auto
+      text-align: center
+      background-color: #fff
+      td
+        padding: 5px
     .overdue-fee-list
       width: 100%
       margin: 20px 0

@@ -9,24 +9,76 @@ import config from './config'
 // import qs from 'qs'
 import MintUI, {Indicator, Toast} from 'mint-ui'
 import 'mint-ui/lib/style.css'
+import {Swipe, SwipeItem} from 'vant'
 import 'normalize.css'
 import './assets/css/common.css'
 import './assets/css/base.styl'
 import './assets/font-awesome-4.7.0/css/font-awesome.min.css'
 
 /* eslint-disable no-unused-vars */
-var VConsole = require('vconsole/dist/vconsole.min')
-var vConsole = new VConsole()
+// var VConsole = require('vconsole/dist/vconsole.min')
+// var vConsole = new VConsole()
+
+// if (process.env.NODE_ENV === 'development') {
+//   axios.defaults.baseURL = config.api.dev + '/khw/c/h'
+// } else if (process.env.NODE_ENV === 'production') {
+//   axios.defaults.baseURL = config.api.pro
+// }
+// console.log(axios.defaults.baseURL)
+// `timeout` 指定请求超时的毫秒数(0 表示无超时时间)，如果请求超过 `timeout` 的时间，请求将被中断
+axios.defaults.timeout = 20000
+
+axios.interceptors.request.use(function(config) {
+  // Indicator.open({
+  //   text: '加载中...',
+  //   spinnerType: 'fading-circle'
+  // })
+
+  // if (config.method.toLowerCase() === 'post') {
+  //   config.data = qs.stringify(config.data)
+  // }
+  store.commit('isLoadingSave', true)
+
+  return config
+}, function(error) {
+  store.commit('isLoadingSave', true)
+  return Promise.reject(error)
+})
+axios.interceptors.response.use(function(response) {
+  Indicator.close()
+  store.commit('isLoadingSave', false)
+  return response
+}, function(error) {
+  Indicator.close()
+  store.commit('isLoadingSave', false)
+
+  // let toastInstance = Toast({
+  //   message: '获取数据失败，请稍后重试',
+  //   duration: 2000
+  // })
+  // store.commit('toastInstanceSave', toastInstance)
+
+  Toast({
+    message: '获取数据失败，请稍后重试',
+    duration: 1500
+  })
+  return Promise.reject(error)
+})
 
 if (process.env.NODE_ENV === 'development') {
   store.commit('apiSave', config.api.dev + '/khw/c/h')
 } else if (process.env.NODE_ENV === 'production') {
   store.commit('apiSave', config.api.pro)
+
+  // 跑批
+  // store.commit('apiSave', 'http://xfjr.ledaikuan.cn:9292/khw/c/h')
 }
 console.log(store.state.common.api)
 
 Vue.config.productionTip = false
 Vue.use(MintUI)
+Vue.use(Swipe)
+Vue.use(SwipeItem)
 
 /* eslint-disable no-undef */
 Vue.prototype.app = app
@@ -94,6 +146,7 @@ app.back = function() {
   let hasPopup = store.state.common.hasPopup
   // isLoading是否正在请求(默认false,请求期间屏蔽后退功能 [注意：巨坑来了，如果在全局拦截中使用vuex-persist修改，一旦某个请求被catch到后js就不再执行，目前去掉了插件vuex-persist])
   let isLoading = store.state.common.isLoading
+  console.log('isLoading', isLoading)
   if (hasPopup) {
     store.commit('hasPopupSave', false)
     return
@@ -130,6 +183,7 @@ app.back = function() {
 Vue.prototype.goback = function() {
   // isLoading是否正在请求(默认false,请求期间屏蔽后退功能[注意：巨坑来了，如果在全局拦截中使用vuex-persist修改，一旦某个请求被catch到后js就不再执行，目前去掉了插件vuex-persist])
   let isLoading = store.state.common.isLoading
+  console.log('isLoading', isLoading)
   if (isLoading) {
     return
   }
@@ -450,59 +504,6 @@ new Vue({
   template: '<App/>',
   components: {App},
   created() {
-    axios.defaults.method = 'post'
-    // if (process.env.NODE_ENV === 'development') {
-    //   axios.defaults.baseURL = config.api.dev + '/khw/c/h'
-    // } else if (process.env.NODE_ENV === 'production') {
-    //   axios.defaults.baseURL = config.api.pro
-    // }
-    // console.log(axios.defaults.baseURL)
-    // `timeout` 指定请求超时的毫秒数(0 表示无超时时间)，如果请求超过 `timeout` 的时间，请求将被中断
-    axios.defaults.timeout = 20000
-
-    // axios.defaults.transformRequest = [function(data) {
-    //   if (data) {
-    //     data = JSON.stringify(data)
-    //   }
-    //   return data
-    // }]
-    axios.interceptors.request.use((config) => {
-      // Indicator.open({
-      //   text: '加载中...',
-      //   spinnerType: 'fading-circle'
-      // })
-
-      // if (config.method.toLowerCase() === 'post') {
-      //   config.data = qs.stringify(config.data)
-      // }
-
-      store.commit('isLoadingSave', true)
-      return config
-    }, function(error) {
-      store.commit('isLoadingSave', true)
-      return Promise.reject(error)
-    })
-    axios.interceptors.response.use(function(response) {
-      Indicator.close()
-      store.commit('isLoadingSave', false)
-      return response
-    }, function(error) {
-      Indicator.close()
-      store.commit('isLoadingSave', false)
-
-      // let toastInstance = Toast({
-      //   message: '获取数据失败，请稍后重试',
-      //   duration: 2000
-      // })
-      // store.commit('toastInstanceSave', toastInstance)
-
-      Toast({
-        message: '获取数据失败，请稍后重试',
-        duration: 1500
-      })
-      return Promise.reject(error)
-    })
-
     this.init()
   }
 })

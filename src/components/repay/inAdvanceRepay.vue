@@ -109,7 +109,7 @@
               mobileNo: commonParams.args.mobileNo,
               token: commonParams.args.token,
               loanAcctNo: commonParams.args.loanAcctNo,
-              // 还款类别 2逾期转正常还款 4全部结清还款
+              // 还款类别 1单笔结清还款 2逾期转正常还款 3提前还当期还款 4全部结清还款
               returnType: 4,
               // 还款金额
               amount: summaryInfo.realTotalAmount
@@ -119,7 +119,7 @@
           })
 
           that.loading()
-          that.$http.post(this.$store.state.common.api, paramString).then(res => {
+          that.$http.post(that.$store.state.common.api, paramString).then(res => {
             let data = res.data
             if (data.returnCode === '000000') {
               // 更新汇总信息

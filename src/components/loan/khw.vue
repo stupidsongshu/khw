@@ -36,6 +36,7 @@
       </div>
 
       <div class="select-month">
+        <mt-button :class="{active: loanDuration === 3}" @click="selectLoanDuration(3)">3个月</mt-button>
         <mt-button :class="{active: loanDuration === 6}" @click="selectLoanDuration(6)">6个月</mt-button>
         <mt-button :class="{active: loanDuration === 12}" @click="selectLoanDuration(12)">12个月</mt-button>
       </div>
@@ -43,11 +44,21 @@
 
     <div class="index-btn-group-wrapper">
       <div class="loan-btn">
-        <mt-button class="btn" @click="loan">立即借款</mt-button>
+        <mt-button class="btn" @click="loan">立即消费用款</mt-button>
       </div>
 
       <div class="footer-txt">"卡还王"由麦广互娱与中银消费金融联合打造</div>
     </div>
+
+    <!-- <div class="adbannerWrapper">
+      <adbanner></adbanner>
+    </div> -->
+
+    <keep-alive>
+      <div class="banner-wrapper">
+        <adbanner></adbanner>
+      </div>
+    </keep-alive>
 
     <mt-tabbar fixed v-if="deviceType === 'android'">
       <mt-tab-item id="loan">
@@ -68,6 +79,7 @@
 
 <script>
   import noticeSwiper from './../common/noticeSwiper'
+  import adbanner from '../common/adbanner'
 
   export default {
     name: 'home',
@@ -77,7 +89,8 @@
       }
     },
     components: {
-      noticeSwiper
+      noticeSwiper,
+      adbanner
     },
     methods: {
       selectLoanDuration(time) {
@@ -223,10 +236,10 @@
       justify-content: space-between
       width: 100%
       padding: 0 15px
-      /*margin: 55px 0 46px 0*/
-      margin: 40px 0 46px 0
+      // margin: 40px 0 46px 0
+      margin: 25px 0
       button
-        width: 46%
+        width: 30%
         height: 30px
         color: #999
         font-size: 15px
@@ -238,9 +251,9 @@
           background-color: #daab5b
 
   .index-btn-group-wrapper
-    position: absolute
-    left: 0
-    bottom: 54px
+    // position: absolute
+    // left: 0
+    // bottom: 54px
     width: 100%
 
     .footer-txt
@@ -248,6 +261,25 @@
       text-align: center
       color: #999
       font-size: 12px
+  
+  .adbannerWrapper
+    position: absolute
+    left: 0
+    bottom: 54px
+    width: 100%
+    height: 50px
+
+  .banner-wrapper{
+    width: 92%
+    padding-bottom: 4px
+    position: fixed
+    left: 4%
+    bottom: 1.44rem
+    height: 60px
+    border-radius: 30px
+    overflow: hidden
+  }
+
 
   .mint-tabbar
     height: 54px

@@ -1,6 +1,6 @@
 <template>
   <div class="loan">
-    <mt-header fixed class="header" title="立即借款">
+    <mt-header fixed class="header" title="卡还王">
       <!--<router-link to="/" slot="left">
         <mt-button icon="back"></mt-button>
       </router-link>-->
@@ -11,7 +11,7 @@
 
     <div class="banner-wrapper">
       <div class="banner-container">
-        <div class="title"><i class="icon-rate"></i><span>借款金额</span></div>
+        <div class="title"><i class="icon-rate"></i><span>消费用款金额</span></div>
         <div>
           <span class="icon-money"></span><span class="loan-amount">{{loanLimit}}</span>
         </div>
@@ -22,7 +22,7 @@
       <div class="loan-purpose-wrapper">
         <span class="loan-purpose-name color999">贷款用途：</span>
         <div class="loan-purpose-select" @click="selectPurpose">
-          <input type="text" placeholder="请选择" v-model="purpose" readonly onfocus="this.blur()">
+          <input type="text" placeholder="请选择贷款用途" v-model="purpose" readonly onfocus="this.blur()">
           <i class="fa fa-angle-right color999"></i>
         </div>
       </div>
@@ -32,10 +32,15 @@
           <span class="name">贷款期数：</span>
           <span class="value">{{loanDuration}}期</span>
         </div>
-        <div class="item-r">
-          <span class="name">月利率：</span>
-          <span class="value">{{dayRate}}%</span>
-        </div>
+        <!-- <div class="item-r">
+          <span class="name">月分期手续费率：</span>
+          <span class="value">{{monthRate}}%</span>
+        </div> -->
+      </div>
+
+      <div class="loan-item">
+        <span class="color999">月分期手续费率：</span>
+        <span class="value">{{monthRate}}%</span>
       </div>
 
       <div class="loan-item">
@@ -69,7 +74,7 @@
     </div>
 
     <div class="loan-btn" style="margin: 30px 0;">
-      <mt-button class="btn" @click="loanBtn" :disabled="!checked">立即借款</mt-button>
+      <mt-button class="btn" @click="loanBtn" :disabled="!checked">消费用款</mt-button>
     </div>
 
     <loan-plan :overflowScroll="false" :loanPlanList="loanPlanList"></loan-plan>
@@ -107,7 +112,7 @@
           className: 'slot'
         }],
         loanPurposeValues: [],
-        dayRate: 0,
+        monthRate: 0,
         openBank: '',
         creditcardNo: '',
         // 是否发出获取收款银行请求
@@ -148,14 +153,17 @@
       let loanDuration = this.loanDuration
       // 月分期费率
       let monthRate
-      if (loanDuration === 6) {
+      if (loanDuration === 3) {
+        monthRate = 0.0198
+        this.monthRate = 1.98
+      } else if (loanDuration === 6) {
         // monthRate = 1.35 / 100
-        monthRate = 0.0135
-        this.dayRate = 1.35
+        monthRate = 0.0175
+        this.monthRate = 1.75
       } else if (loanDuration === 12) {
         // monthRate = 1.25 / 100
-        monthRate = 0.0125
-        this.dayRate = 1.25
+        monthRate = 0.0162
+        this.monthRate = 1.62
       }
 
       /**
@@ -177,17 +185,31 @@
         }
         var day1 = parseInt(day) - 1
         // 当第三个参数为0返回上一个月的最后一天(也是天数)
-        var days1 = new Date(year1, month1, 0).getDate()
-        if (day1 > days1) {
-          day1 = days1
-        }
-        if (month1 < 10) {
-          month1 = '0' + month1
+        // var days1 = new Date(year1, month1, 0).getDate()
+        // if (day1 > days1) {
+        //     day1 = days1
+        // }
+        // if (month1 < 10) {
+        //     month1 = '0' + month1
+        // }
+        // if (day1 < 10) {
+        //     day1 = '0' + day1
+        // }
+
+        // return year1 + '' + month1 + '' + day1
+
+        // fix 2018-02-01 => 20180228
+        var daysAmt = new Date(year, month, 0).getDate()
+        if (day1 === 0) {
+          day1 = daysAmt
+          month1--
         }
         if (day1 < 10) {
           day1 = '0' + day1
         }
-
+        if (month1 < 10) {
+          month1 = '0' + month1
+        }
         return year1 + '' + month1 + '' + day1
       }
 

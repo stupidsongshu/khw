@@ -30,34 +30,40 @@
           <div class="card-l-t">按期还款</div>
           <div class="card-l-b">还款日将自动还款</div>
         </div>
-        <!--<div class="card-m">
-          <div class="card-m-t">691.14元</div>
+        <div class="card-m">
+          <!-- <div class="card-m-t">691.14元</div> -->
           <div class="overdue">已逾期</div>
-        </div>-->
+        </div>
         <div class="card-r">
           <i class="fa fa-angle-right"></i>
         </div>
       </div>
-      <div class="card" @click="inAdvanceRepay">
+      <div class="card" @click="inAdvanceRepayCurrent">
         <div class="card-l">
           <div class="card-l-t">提前还款</div>
-          <div class="card-l-b">可提前结清所有借款</div>
+          <div class="card-l-b">可提前结清当期用款</div>
         </div>
         <div class="card-r">
           <i class="fa fa-angle-right"></i>
         </div>
       </div>
+      <!-- <div class="card" @click="inAdvanceRepay">
+        <div class="card-l">
+          <div class="card-l-t">提前还款</div>
+          <div class="card-l-b">可提前结清所有用款</div>
+        </div>
+        <div class="card-r">
+          <i class="fa fa-angle-right"></i>
+        </div>
+      </div> -->
 
-      <div class="friendly-reminder">
-        友情提示：请您在到期还款日前还款，逾期不还将依法报送人民银行征信系统，未来可能会对您找工作，办理签证、车贷、房贷造成影响。
-      </div>
+      <div class="friendly-reminder">友情提示：请您在到期还款日前还款，逾期不还将依法报送人民银行征信系统，未来可能会对您找工作，办理签证、车贷、房贷造成影响。</div>
     </div>
 
     <div class="no-repay" v-if="!hasRepay">
       <img class="no-repay-img" src="../../assets/img/no-repay.png" alt="">
       <div class="no-repay-txt">暂无账单</div>
     </div>
-
 
     <mt-tabbar fixed v-if="deviceType === 'android'">
       <mt-tab-item>
@@ -97,7 +103,6 @@
         return this.$store.state.common.deviceType
       },
       footer() {
-        // return this.$store.state.common.hasFooter
         return this.$store.state.common.deviceType === 'android'
       }
     },
@@ -143,8 +148,14 @@
             if (data.returnCode === '000000') {
               // 未还本金
               let remainAmt = data.response.remainAmt.toString()
-              that.remainAmtInt = remainAmt.substring(0, remainAmt.length - 2)
-              that.remainAmtFlo = remainAmt.substring(remainAmt.length - 2)
+
+              if (remainAmt.length >= 3) {
+                that.remainAmtInt = remainAmt.substring(0, remainAmt.length - 2)
+                that.remainAmtFlo = remainAmt.substring(remainAmt.length - 2)
+              } else {
+                this.remainAmtInt = 0
+                this.remainAmtFlo = remainAmt
+              }
               // 申请时间
               that.transTime = data.response.transTime
               that.$store.commit('loan_applyTime_save', data.response.transTime)
@@ -158,25 +169,32 @@
       },
       onTimeRepay() {
         if (this.transTime) {
-          this.$router.push('/repay/onTimeRepay')
+          this.$router.push({name: 'onTimeRepay'})
         } else {
           this.getCashExtractDetail()
         }
       },
       overdueTimeRepay() {
         if (this.transTime) {
-          this.$router.push('/repay/overdueRepay')
+          this.$router.push({name: 'overdueRepay'})
         } else {
           this.getCashExtractDetail()
         }
       },
-      inAdvanceRepay() {
+      inAdvanceRepayCurrent() {
         if (this.transTime) {
-          this.$router.push('/repay/inAdvanceRepay')
+          this.$router.push({name: 'inAdvanceRepayCurrent'})
         } else {
           this.getCashExtractDetail()
         }
       },
+      // inAdvanceRepay() {
+      //   if (this.transTime) {
+      //     this.$router.push({name: 'inAdvanceRepay'})
+      //   } else {
+      //     this.getCashExtractDetail()
+      //   }
+      // },
       // 进入贷前'我的'
       toMy() {
         /* eslint-disable no-undef */

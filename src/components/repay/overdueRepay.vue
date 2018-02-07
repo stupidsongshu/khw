@@ -9,8 +9,8 @@
     <div class="banner">
       <div class="title">逾期应还</div>
       <div class="amount">
-        <!--<span class="icon-money"></span> 691.<span class="decimals">14</span>-->
-        <span class="icon-money"></span> {{minReturnAmount}}
+        <span class="icon-money"></span> {{minReturnAmountInt}}.<span class="decimals">{{minReturnAmountFlo}}</span>
+        <!-- <span class="icon-money"></span> {{minReturnAmount}} -->
       </div>
       <div class="overdue-time">已逾期{{ovdDayCnt}}天</div>
     </div>
@@ -58,6 +58,8 @@
       return {
         // 解除逾期状态所需偿还金额
         minReturnAmount: 0,
+        minReturnAmountInt: 0,
+        minReturnAmountFlo: 0,
         // 逾期天数
         ovdDayCnt: 0,
         // 本金
@@ -76,6 +78,13 @@
     created() {
       let summaryInfo = this.$store.state.common.summaryInfo
       this.minReturnAmount = summaryInfo.minReturnAmount
+      if (this.minReturnAmount.length >= 3) {
+        this.minReturnAmountInt = this.minReturnAmount.substring(0, this.minReturnAmount.length - 2)
+        this.minReturnAmountFlo = this.minReturnAmount.substring(this.minReturnAmount.length - 2)
+      } else {
+        this.minReturnAmountInt = 0
+        this.minReturnAmountFlo = this.minReturnAmount
+      }
       this.ovdDayCnt = summaryInfo.ovdDayCnt
       this.baseUsedCreLine = summaryInfo.baseUsedCreLine / 100
       this.debitCardNo = summaryInfo.debitCardNo.substring(summaryInfo.debitCardNo.length - 4)
@@ -86,17 +95,34 @@
       let loanDuration = this.$store.state.loan.loan_duration
       // 月分期费率
       let monthRate
-      if (loanDuration === 6) {
+      // if (loanDuration === 6) {
+      //   // monthRate = 1.35 / 100
+      //   monthRate = 0.0135
+      // } else if (loanDuration === 12) {
+      //   // monthRate = 1.25 / 100
+      //   monthRate = 0.0125
+      // }
+
+      if (loanDuration === 3) {
+        monthRate = 0.0198
+      } else if (loanDuration === 6) {
         // monthRate = 1.35 / 100
-        monthRate = 0.0135
+        monthRate = 0.0175
       } else if (loanDuration === 12) {
         // monthRate = 1.25 / 100
-        monthRate = 0.0125
+        monthRate = 0.0162
       }
-      this.curInterest = this.baseUsedCreLine * monthRate
+      // fix 精度 显示过长(0.0175*1800 = 31.500000000000004)
+      // let curInterestTmp = this.baseUsedCreLine * monthRate
+      // if (curInterestTmp.toString().indexOf('.') !== -1) {
+      //   let flo = curInterestTmp.toString().split('.')[1]
+      //   if (flo.length > 2) {
+      //   }
+      // }
+      this.curInterest = (this.baseUsedCreLine * monthRate).toFixed(2)
 
       // 逾期滞纳金
-      if (this.baseUsedCreLine >= 1000 && this.baseUsedCreLine <= 5000) {
+      if (this.baseUsedCreLine >= 0 && this.baseUsedCreLine <= 5000) {
         this.ovdFine = 5
       } else if (this.baseUsedCreLine > 5000 && this.baseUsedCreLine <= 10000) {
         this.ovdFine = 10
@@ -143,9 +169,9 @@
               mobileNo: commonParams.args.mobileNo,
               token: commonParams.args.token,
               loanAcctNo: commonParams.args.loanAcctNo,
-              // 还款类别 2逾期转正常还款 4全部结清还款
+              // 还款类别 1单笔结清还款 2逾期转正常还款 3提前还当期还款 4全部结清还款
               returnType: 2,
-              // 还款金额
+              // 解除逾期状态所需偿还金额(客户逾期后欲解除逾期状时所需偿还的金额。还款金额为上期未还足的最低还款额其所剩余应还金额与余其其间所产生的滞纳费总和)
               amount: summaryInfo.minReturnAmount
             },
             sign: sign,

@@ -65,12 +65,12 @@
               })
 
               that.loading()
-              that.$http.post(this.$store.state.common.api, paramString).then(res => {
+              that.$http.post(that.$store.state.common.api, paramString).then(res => {
                 let data = res.data
                 if (data.returnCode === '000000') {
                   resolve(data.response)
                 } else {
-                  this.toast(data.returnMsg)
+                  that.toast(data.returnMsg)
                   reject(data)
                 }
               }).catch(err => {
@@ -108,10 +108,24 @@
               })
 
               that.loading()
-              that.$http.post(this.$store.state.common.api, paramString).then(res => {
+              that.$http.post(that.$store.state.common.api, paramString).then(res => {
                 let data = res.data
                 if (data.returnCode === '000000') {
-                  that.loanPlanList = data.response.list.splice(0, cashExtractDetailData.realInstalPeriod)
+                  // that.loanPlanList = data.response.list.splice(0, cashExtractDetailData.realInstalPeriod)
+                  console.log(data.response.list)
+                  var tmpArr = []
+                  for (var i = 0; i < data.response.list.length; i++) {
+                    var item = data.response.list[i]
+                    if (item.detailFlg === '1') {
+                      tmpArr.push(item)
+                    }
+                    if (item.detailFlg === '9') {
+                      tmpArr.push(item)
+                      break
+                    }
+                  }
+                  that.loanPlanList = tmpArr
+                  console.log(that.loanPlanList)
                   resolve(data.response)
                 } else {
                   that.toast(data.returnMsg)

@@ -4,18 +4,26 @@
     <p class="hint color999">期限内提前还款，按实际使用期数收取利息</p>
 
     <div class="plan-nav">
-      <div class="plan-periods">期数</div>
-      <div class="plan-detail">详情</div>
-      <div class="plan-amount">还款金额</div>
+      <div style="font-size: 12px;" class="plan-periods">期数</div>
+      <div style="font-size: 12px;" class="plan-detail">详情</div>
+      <div style="font-size: 12px;" class="plan-amount">每月具体还款数额</div>
     </div>
     <div class="plan-item" v-for="loanPlanItem of loanPlanList">
       <div class="plan-periods">{{loanPlanItem.paymentPeriod}}期</div>
       <div class="plan-detail">
         <div>时间：{{loanPlanItem.prePayDay | date}}</div>
         <div>本金：{{(loanPlanItem.prePrin / 100).toFixed(2)}}</div>
-        <div>月利率费：{{(loanPlanItem.preFee / 100).toFixed(2)}}</div>
+        <div>月分期手续费：{{(loanPlanItem.preFee / 100).toFixed(2)}}</div>
       </div>
-      <div class="plan-amount">{{(loanPlanItem.preAmt / 100).toFixed(2)}}</div>
+      <div class="plan-amount">
+        {{(loanPlanItem.preAmt / 100).toFixed(2)}}
+        <div v-if="loanPlanItem.paymentStatus === '1'" style="font-size: 12px;">未到还款日</div>
+        <div v-if="loanPlanItem.paymentStatus === '2'" style="font-size: 12px;">已逾期</div>
+        <div v-if="loanPlanItem.paymentStatus === '3'" style="font-size: 12px;">部分还款</div>
+        <div v-if="loanPlanItem.paymentStatus === '4'" style="font-size: 12px;">已还款</div>
+      </div>
+
+      <!-- paymentStatus 1未到还款日 2已逾期 3部分还款 4已还款 -->
     </div>
   </div>
 </template>
