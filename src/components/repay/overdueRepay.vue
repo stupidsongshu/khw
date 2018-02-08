@@ -40,7 +40,7 @@
     </div>
 
     <div class="loan-btn">
-      <mt-button class="btn" :disabled="disabledBtn" @click="overdueRepayBtn">立即还款</mt-button>
+      <mt-button class="btn" :disabled="disabledBtn" @click="overdueRepayConfirm">立即还款</mt-button>
     </div>
 
     <ul class="hint">
@@ -49,6 +49,23 @@
       <li>2.扣款一旦成功，不可申请撤诉</li>
       <li>3.在逾期的宽限期3天内还款可免除滞纳费</li>
     </ul>
+
+    <mt-popup
+      v-model="hasPopup"
+      popup-transition="popup-fade"
+      position="center"
+      :modal="true"
+      :closeOnClickModal="false">
+      <div class="popup-self-container">
+        <div class="popup-self-wrapper">
+          <h2 class="popup-self-title">请确保卡内余额充足！</h2>
+          <div class="popup-self-btn-group">
+            <span @click="cancel">取消</span>
+            <span @click="confirm">确定</span>
+          </div>
+        </div>
+      </div>
+    </mt-popup>
   </div>
 </template>
 
@@ -78,9 +95,10 @@
     created() {
       let summaryInfo = this.$store.state.common.summaryInfo
       this.minReturnAmount = summaryInfo.minReturnAmount
-      if (this.minReturnAmount.length >= 3) {
-        this.minReturnAmountInt = this.minReturnAmount.substring(0, this.minReturnAmount.length - 2)
-        this.minReturnAmountFlo = this.minReturnAmount.substring(this.minReturnAmount.length - 2)
+      let minReturnAmountStr = this.minReturnAmount.toString()
+      if (minReturnAmountStr.length >= 3) {
+        this.minReturnAmountInt = minReturnAmountStr.substring(0, minReturnAmountStr.length - 2)
+        this.minReturnAmountFlo = minReturnAmountStr.substring(minReturnAmountStr.length - 2)
       } else {
         this.minReturnAmountInt = 0
         this.minReturnAmountFlo = this.minReturnAmount
@@ -144,11 +162,30 @@
         this.ovdFine = 50
       }
     },
+    computed: {
+      hasPopup: {
+        get() {
+          return this.$store.state.common.hasPopup
+        },
+        set() {}
+      }
+    },
     methods: {
       back() {
-        this.goback()
+        // this.goback()
+        this.$router.push({name: 'repay'})
       },
-      overdueRepayBtn() {
+      overdueRepayConfirm() {
+        this.$store.commit('hasPopupSave', true)
+      },
+      cancel() {
+        this.$store.commit('hasPopupSave', false)
+      },
+      confirm() {
+        this.$store.commit('hasPopupSave', false)
+        this.overdueRepay()
+      },
+      overdueRepay() {
         let that = this
 
         this.disabledBtn = true

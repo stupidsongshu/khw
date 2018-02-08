@@ -3,9 +3,12 @@
     <mt-header fixed class="header" title="还款"></mt-header>
 
     <div class="deal-banner">
-      <div class="status" v-show="status === 0">提交成功</div>
-      <div class="status" v-show="status === 1">银行处理中</div>
-      <div class="status" v-show="status === 2">还款成功</div>
+      <div class="status" v-if="status === 0">提交成功</div>
+      <div class="status" v-if="status === 1">银行处理中</div>
+      <div class="status">
+        <span v-if="status === 2">还款成功</span>
+        <span v-if="status === 3">还款失败</span>
+      </div>
 
       <div class="step">
         <ul class="step-progress">
@@ -22,7 +25,10 @@
           <li class="step-content" :class="{active: status >= 2}">
             <div class="step-icon icon3"></div>
             <div class="step-line"></div>
-            <div class="step-desc">还款成功</div>
+            <div class="step-desc">
+              <span v-if="status <= 2">还款成功</span>
+              <span v-if="status === 3">还款失败</span>
+            </div>
           </li>
         </ul>
       </div>
@@ -110,10 +116,6 @@
           })
 
           that.$http.post(that.$store.state.common.api, paramString).then(res => {
-            // fix ios 底部tab空白
-            setTimeout(function() {
-              that.popupVisible = true
-            }, 100)
             let data = res.data
             if (data.returnCode === '000000') {
               let res = data.response
@@ -124,7 +126,7 @@
                 that.toast('还款成功', 3000)
               } else if (res.transStus === 1) {
                 that.status = 3
-                that.toast('还款失败，请稍后重试', 3000)
+                that.toast('还款失败，请确保卡内余额是否充足', 3000)
               } else if (res.transStus === 2) {
                 that.status = 1
               } else if (res.transStus === 9) {
@@ -205,19 +207,20 @@
         })
       },
       checkRepayDeal() {
-        let that = this
+        // fix ios 底部tab空白
+        var timer = setTimeout(() => {
+          this.popupVisible = true
+          clearTimeout(timer)
+        }, 100)
+
         let cashRepay = this.$store.state.common.cashRepay
         console.log(cashRepay.amount, cashRepay.merchantOrderId)
+
         if (cashRepay.amount && cashRepay.merchantOrderId) {
           // 正常情况(有单笔交易信息): 不断更新单笔交易结果接口(Loan.singleTrans)
           this.updateRepayDealStatus()
         } else {
           // 异常情况(无单笔交易信息): 不断更新账户汇总信息(Loan.loanAcctInfo)
-          this.popupVisible = true
-          // fix ios 底部tab空白
-          setTimeout(function() {
-            that.popupVisible = true
-          }, 100)
           this.updateLoanAcctInfo()
         }
       },

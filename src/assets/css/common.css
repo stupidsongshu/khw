@@ -193,6 +193,10 @@ input:-ms-input-placeholder {      /* IE 10+ */
   font-size: 16px;
 }
 
+/* fix 借款处理中&还款处理中页面toast在mask下面显示 */
+.mint-toast {
+  z-index: 9999999999 !important;
+}
 /*mint-ui toast text font-size*/
 .mint-toast-text {
   font-size: 12px !important;

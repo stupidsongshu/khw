@@ -50,10 +50,6 @@
       <div class="footer-txt">"卡还王"由麦广互娱与中银消费金融联合打造</div>
     </div>
 
-    <!-- <div class="adbannerWrapper">
-      <adbanner></adbanner>
-    </div> -->
-
     <keep-alive>
       <div class="banner-wrapper">
         <adbanner></adbanner>
@@ -224,7 +220,7 @@
             font-size: 14px
   .range
     width: 100%
-    margin-top: 80px
+    margin-top: 60px
     padding: 0 15px
     .range-num
       width: 100%
@@ -237,7 +233,7 @@
       width: 100%
       padding: 0 15px
       // margin: 40px 0 46px 0
-      margin: 25px 0
+      margin: 20px 0
       button
         width: 30%
         height: 30px
@@ -261,25 +257,16 @@
       text-align: center
       color: #999
       font-size: 12px
-  
-  .adbannerWrapper
-    position: absolute
-    left: 0
-    bottom: 54px
-    width: 100%
-    height: 50px
 
-  .banner-wrapper{
+  .banner-wrapper
     width: 92%
     padding-bottom: 4px
     position: fixed
     left: 4%
-    bottom: 1.44rem
+    bottom: 54px
     height: 60px
     border-radius: 30px
     overflow: hidden
-  }
-
 
   .mint-tabbar
     height: 54px

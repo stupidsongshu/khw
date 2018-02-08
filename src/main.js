@@ -16,8 +16,8 @@ import './assets/css/base.styl'
 import './assets/font-awesome-4.7.0/css/font-awesome.min.css'
 
 /* eslint-disable no-unused-vars */
-// var VConsole = require('vconsole/dist/vconsole.min')
-// var vConsole = new VConsole()
+var VConsole = require('vconsole/dist/vconsole.min')
+var vConsole = new VConsole()
 
 // if (process.env.NODE_ENV === 'development') {
 //   axios.defaults.baseURL = config.api.dev + '/khw/c/h'
@@ -175,6 +175,11 @@ app.back = function() {
   // 屏蔽借款处理中、还款处理中返回
   if (router.currentRoute.path === '/loanDeal' || router.currentRoute.path === '/repay/repayDeal') {
     return
+  }
+
+  // 逾期还款返回到还款页面
+  if (router.currentRoute.path === '/repay/overdueRepay') {
+    router.push({name: 'repay'})
   }
 
   window.history.go(-1)

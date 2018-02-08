@@ -36,7 +36,7 @@
 
     <div class="loan-btn">
       <mt-button class="btn" @click="inAdvanceRepayconfirm" :disabled="disabledBtn">立即还款</mt-button>
-      <p v-if="returnAmt === 0" style="color: #f00;font-size: 14px;text-align: center;padding: 4px;">当期已还清</p>
+      <p v-if="returnAmt === 0" style="color: #f00;font-size: 14px;text-align: center;padding: 4px;">当期已结清</p>
     </div>
 
     <ul class="hint">

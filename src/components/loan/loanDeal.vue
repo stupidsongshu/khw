@@ -3,12 +3,13 @@
     <mt-header fixed class="header" title="借款"></mt-header>
 
     <div class="deal-banner">
-      <div class="status" v-show="status === 0">提交成功</div>
-      <div class="status" v-show="status === 1">银行处理中</div>
-      <div class="status" v-show="status === 2">借款成功</div>
-      <!--<div class="loan-amount">
-        <span class="icon-money"></span>{{payAmtInt}}.<span class="decimals">{{payAmtFlo}}</span>
-      </div>-->
+      <div class="status" v-if="status === 0">提交成功</div>
+      <div class="status" v-if="status === 1">银行处理中</div>
+      <div class="status" v-if="status === 2">借款成功</div>
+      <div class="status">
+        <span v-if="status === 2">借款成功</span>
+        <span v-if="status === 3">借款失败</span>
+      </div>
 
       <div class="step">
         <ul class="step-progress">
@@ -25,13 +26,16 @@
           <li class="step-content" :class="{active: status >= 2}">
             <div class="step-icon icon3"></div>
             <div class="step-line"></div>
-            <div class="step-desc">借款成功</div>
+            <div class="step-desc">
+              <span v-if="status <= 2">借款成功</span>
+              <span v-if="status === 3">借款失败</span>
+            </div>
           </li>
         </ul>
       </div>
     </div>
 
-    <div class="loan-btn count-down" v-show="status > 1">
+    <div class="loan-btn count-down" v-if="status > 1">
       <mt-button class="btn">{{restTime}}s后返回</mt-button>
     </div>
 
@@ -104,10 +108,6 @@
           })
 
           that.$http.post(that.$store.state.common.api, paramString).then(res => {
-            // fix ios 底部tab空白
-            setTimeout(function() {
-              that.popupVisible = true
-            }, 100)
             let data = res.data
             if (data.returnCode === '000000') {
               let res = data.response
@@ -145,7 +145,7 @@
       updateLoanAcctInfo() {
         let that = this
 
-        let cashExtract = that.$store.state.common.cashExtract
+        let cashExtract = this.$store.state.common.cashExtract
 
         let commonParams = this.$store.state.common.commonParams
         let ua = commonParams.ua
@@ -200,7 +200,12 @@
         })
       },
       checkLoanDeal() {
-        let that = this
+        // fix ios 底部tab空白
+        var timer = setTimeout(() => {
+          this.popupVisible = true
+          clearTimeout(timer)
+        }, 100)
+
         let cashExtract = this.$store.state.common.cashExtract
         console.log(cashExtract.amount, cashExtract.merchantOrderId)
         if (cashExtract.amount && cashExtract.merchantOrderId) {
@@ -208,10 +213,6 @@
           this.updateLoanDealStatus()
         } else {
           // 异常情况(借款处理中未出结果重新进入，无单笔交易信息): 不断更新账户汇总信息(Loan.loanAcctInfo)
-          // fix ios 底部tab空白
-          setTimeout(function() {
-            that.popupVisible = true
-          }, 100)
           this.updateLoanAcctInfo()
         }
       }

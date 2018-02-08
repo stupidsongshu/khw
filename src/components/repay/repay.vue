@@ -143,7 +143,7 @@
           })
 
           that.loading()
-          that.$http.post(this.$store.state.common.api, paramString).then(res => {
+          that.$http.post(that.$store.state.common.api, paramString).then(res => {
             let data = res.data
             if (data.returnCode === '000000') {
               // 未还本金
@@ -153,8 +153,8 @@
                 that.remainAmtInt = remainAmt.substring(0, remainAmt.length - 2)
                 that.remainAmtFlo = remainAmt.substring(remainAmt.length - 2)
               } else {
-                this.remainAmtInt = 0
-                this.remainAmtFlo = remainAmt
+                that.remainAmtInt = 0
+                that.remainAmtFlo = remainAmt
               }
               // 申请时间
               that.transTime = data.response.transTime
