@@ -16,8 +16,8 @@ import './assets/css/base.styl'
 import './assets/font-awesome-4.7.0/css/font-awesome.min.css'
 
 /* eslint-disable no-unused-vars */
-var VConsole = require('vconsole/dist/vconsole.min')
-var vConsole = new VConsole()
+// var VConsole = require('vconsole/dist/vconsole.min')
+// var vConsole = new VConsole()
 
 // if (process.env.NODE_ENV === 'development') {
 //   axios.defaults.baseURL = config.api.dev + '/khw/c/h'
@@ -68,10 +68,14 @@ axios.interceptors.response.use(function(response) {
 if (process.env.NODE_ENV === 'development') {
   store.commit('apiSave', config.api.dev + '/khw/c/h')
 } else if (process.env.NODE_ENV === 'production') {
-  store.commit('apiSave', config.api.pro)
+  // 测试环境
+  // store.commit('apiSave', config.api.dev + '/khw/c/h')
 
-  // 跑批
+  // 跑批环境
   // store.commit('apiSave', 'http://xfjr.ledaikuan.cn:9292/khw/c/h')
+
+  // 生产环境
+  store.commit('apiSave', config.api.pro)
 }
 console.log(store.state.common.api)
 
@@ -173,13 +177,25 @@ app.back = function() {
   }
 
   // 屏蔽借款处理中、还款处理中返回
-  if (router.currentRoute.path === '/loanDeal' || router.currentRoute.path === '/repay/repayDeal') {
+  // if (router.currentRoute.path === '/loanDeal' || router.currentRoute.path === '/repay/repayDeal') {
+  //   return
+  // }
+
+  // 借款处理中返回首页
+  if (router.currentRoute.path === '/loanDeal') {
+    router.push({name: 'khw'})
+    return
+  }
+  // 还款处理中返回还款页面
+  if (router.currentRoute.path === '/repay/repayDeal') {
+    router.push({name: 'repay'})
     return
   }
 
   // 逾期还款返回到还款页面
   if (router.currentRoute.path === '/repay/overdueRepay') {
     router.push({name: 'repay'})
+    return
   }
 
   window.history.go(-1)

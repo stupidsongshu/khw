@@ -1,6 +1,10 @@
 <template>
   <div class="repay-deal">
-    <mt-header fixed class="header" title="还款"></mt-header>
+    <mt-header fixed class="header" title="还款">
+      <div slot="left" @click="toRepay">
+        <mt-button icon="back"></mt-button>
+      </div>
+    </mt-header>
 
     <div class="deal-banner">
       <div class="status" v-if="status === 0">提交成功</div>
@@ -34,11 +38,16 @@
       </div>
     </div>
 
+    <div class="deal-success" v-if="popupVisible">
+      <img class="deal-success-repay-gif" src="../../assets/img/deal-success-repay.gif" alt="">
+      <div class="deal-success-txt">您的还款正在处理哦~请耐心等待</div>
+    </div>
+
     <div class="loan-btn count-down" v-if="status > 1" @click="checkLoanAcctInfo">
       <mt-button class="btn">{{restTime}}s后返回</mt-button>
     </div>
 
-    <mt-popup
+    <!-- <mt-popup
       v-model="popupVisible"
       popup-transition="popup-fade"
       :modal="true"
@@ -47,7 +56,7 @@
         <img class="deal-success-repay-gif" src="../../assets/img/deal-success-repay.gif" alt="">
         <div class="deal-success-txt">您的还款正在处理哦~请耐心等待</div>
       </div>
-    </mt-popup>
+    </mt-popup> -->
   </div>
 </template>
 
@@ -85,6 +94,9 @@
       }
     },
     methods: {
+      toRepay() {
+        this.$router.push({name: 'repay'})
+      },
       // 更新还款处理结果状态
       updateRepayDealStatus() {
         let that = this

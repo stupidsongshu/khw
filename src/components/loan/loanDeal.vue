@@ -1,11 +1,14 @@
 <template>
   <div class="loan-deal">
-    <mt-header fixed class="header" title="借款"></mt-header>
+    <mt-header fixed class="header" title="借款">
+      <div slot="left" @click="toHome">
+        <mt-button icon="back"></mt-button>
+      </div>
+    </mt-header>
 
     <div class="deal-banner">
       <div class="status" v-if="status === 0">提交成功</div>
       <div class="status" v-if="status === 1">银行处理中</div>
-      <div class="status" v-if="status === 2">借款成功</div>
       <div class="status">
         <span v-if="status === 2">借款成功</span>
         <span v-if="status === 3">借款失败</span>
@@ -35,11 +38,16 @@
       </div>
     </div>
 
+    <div class="deal-success" v-if="popupVisible">
+      <img class="deal-success-loan-gif" src="../../assets/img/deal-success-loan.gif" alt="">
+      <div class="deal-success-txt">您的借款正在处理哦~请耐心等待</div>
+    </div>
+
     <div class="loan-btn count-down" v-if="status > 1">
       <mt-button class="btn">{{restTime}}s后返回</mt-button>
     </div>
 
-    <mt-popup
+    <!-- <mt-popup
       v-model="popupVisible"
       popup-transition="popup-fade"
       :modal="true"
@@ -48,7 +56,7 @@
         <img class="deal-success-loan-gif" src="../../assets/img/deal-success-loan.gif" alt="">
         <div class="deal-success-txt">您的借款正在处理哦~请耐心等待</div>
       </div>
-    </mt-popup>
+    </mt-popup> -->
   </div>
 </template>
 
@@ -77,6 +85,9 @@
       }, 3000)
     },
     methods: {
+      toHome() {
+        this.$router.push('/')
+      },
       // 更新借款处理结果状态
       updateLoanDealStatus() {
         let that = this
