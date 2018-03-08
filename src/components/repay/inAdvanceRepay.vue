@@ -109,7 +109,7 @@
               mobileNo: commonParams.args.mobileNo,
               token: commonParams.args.token,
               loanAcctNo: commonParams.args.loanAcctNo,
-              // 还款类别 1单笔结清还款 2逾期转正常还款 3提前还当期还款 4全部结清还款
+              // 还款类别 1单笔结清还款 2逾期转正常还款(minReturnAmount) 3提前还当期还款(returnAmt) 4全部结清还款(realTotalAmount)
               returnType: 4,
               // 还款金额
               amount: summaryInfo.realTotalAmount

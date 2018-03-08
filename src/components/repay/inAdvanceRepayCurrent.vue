@@ -167,7 +167,7 @@ export default {
             mobileNo: commonParams.args.mobileNo,
             token: commonParams.args.token,
             loanAcctNo: commonParams.args.loanAcctNo,
-            // 还款类别 1单笔结清还款 2逾期转正常还款 3提前还当期还款 4全部结清还款
+            // 还款类别 1单笔结清还款 2逾期转正常还款(minReturnAmount) 3提前还当期还款(returnAmt) 4全部结清还款(realTotalAmount)
             returnType: 3,
             // 本期应还款额(即客户本月(最低)应还的金额。未逾期时为本月应还款额；逾期时为本月应还款额及欲解除逾期状态时所需偿还的金额总和)
             amount: summaryInfo.returnAmt
