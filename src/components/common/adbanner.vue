@@ -1,8 +1,8 @@
 <template>
   <div class="banner-container">
-    <van-swipe :autoplay="3000" :show-indicators="false">
+    <van-swipe :autoplay="6000" :show-indicators="false">
       <van-swipe-item v-for="(banner, index) in banners" :key="index">
-        <img v-lazy="banner.imgUrl"  @click="visitBanner(banner.imgDetailUrl)"/>
+        <img :src="banner.imgUrl"  @click="visitBanner(banner.imgDetailUrl)"/>
       </van-swipe-item>
     </van-swipe>
   </div>

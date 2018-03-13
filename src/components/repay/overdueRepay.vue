@@ -206,7 +206,7 @@
               mobileNo: commonParams.args.mobileNo,
               token: commonParams.args.token,
               loanAcctNo: commonParams.args.loanAcctNo,
-              // 还款类别 1单笔结清还款 2逾期转正常还款 3提前还当期还款 4全部结清还款
+              // 还款类别 1单笔结清还款 2逾期转正常还款(minReturnAmount) 3提前还当期还款(returnAmt) 4全部结清还款(realTotalAmount)
               returnType: 2,
               // 解除逾期状态所需偿还金额(客户逾期后欲解除逾期状时所需偿还的金额。还款金额为上期未还足的最低还款额其所剩余应还金额与余其其间所产生的滞纳费总和)
               amount: summaryInfo.minReturnAmount
