@@ -243,6 +243,27 @@
   }
 </script>
 
-<style lang="stylus" rel="stylesheet/stylus">
-  @import '../../assets/css/loanRepay.styl'
+<style scoped lang="stylus" rel="stylesheet/stylus">
+@import '../../assets/css/loanRepay.styl'
+
+.mint-popup
+  width: 60%
+  border-radius: 4px
+.popup-self-container
+  .popup-self-wrapper
+    .popup-self-title
+      padding: 20px 0
+      font-size: 16px
+      text-align: center
+    .popup-self-btn-group
+      display: flex
+      border-top: 1px solid #999
+      span
+        flex: 1
+        padding: 10px
+        font-size: 14px
+        text-align: center
+        &:first-child
+          margin-right: 4px
+          border-right: 1px solid #999
 </style>
