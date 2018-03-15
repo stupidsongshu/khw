@@ -205,3 +205,14 @@ input:-ms-input-placeholder {      /* IE 10+ */
 .mintui-back {
   font-size: 20px !important;
 }
+
+/* 客服图片 */
+.icon-kefu {
+  display: inline-block;
+  width: 24px;
+  height: 23px;
+  background-image: url("../../assets/img/icon_kefu.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 24px 23px;
+}

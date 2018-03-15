@@ -9,6 +9,8 @@
 </template>
 <script>
 import axios from 'axios'
+import config from '../../config'
+
 export default {
   data() {
     return {
@@ -16,7 +18,7 @@ export default {
     }
   },
   mounted() {
-    let base = 'http://www.kahuanwang.com/khw/c/b'
+    let base = config.adbanner
     const getBannerUrls = params => { return axios.post(`${base}`) }
     getBannerUrls().then((res) => {
       if (res.status === 200) {

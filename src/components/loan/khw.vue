@@ -8,7 +8,8 @@
       </div>-->
 
       <mt-header class="title" title="卡还王">
-        <!--<router-link class="icon-news" to="/newsCenter" slot="right"></router-link>-->
+        <!-- <router-link class="icon-news" to="/newsCenter" slot="right"></router-link> -->
+        <a class="icon-kefu" :href="kefu" slot="right"></a>
       </mt-header>
 
       <div class="card-wrapper">
@@ -76,6 +77,7 @@
 <script>
   import noticeSwiper from './../common/noticeSwiper'
   import adbanner from '../common/adbanner'
+  import config from '../../config'
 
   export default {
     name: 'home',
@@ -115,6 +117,9 @@
       }
     },
     computed: {
+      kefu() {
+        return config.kefu
+      },
       // 设备类型
       deviceType() {
         return this.$store.state.common.deviceType
